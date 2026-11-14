@@ -109,6 +109,27 @@ npm pack --dry-run
 
 测试使用 mock ZeroClave 服务与真实 Langfuse SDK 的内存 exporter，不调用生产检测接口，也不验证实际模型准确率或线上可用性。CI 在 Node 22 和 24 上运行。
 
+### 本地连接真实 SaaS 测试
+
+```sh
+npm run test:live
+```
+
+这条命令单独执行，不在默认测试或 CI 中运行。脚本将内置的虚构姓名、手机号、`example.com` 邮箱通过 HTTPS 发给真实 ZeroClave，经过真实 Langfuse SDK 脱敏后导出到本地内存。无需 ZeroClave API key，也无需 Langfuse 账号或密钥；不会向 Langfuse Cloud 写入 Trace。
+
+通过条件包括：全部请求返回 HTTP 200 且检测完整；input、output、metadata 中的合成敏感值都已替换；导出结果不是失败时的整字段占位符；JSON 可以解析，emoji、普通数字与布尔值保持正确。任何一项失败，进程都以非零状态退出，不能把“请求成功”或“整字段被屏蔽”当作联调通过。
+
+报告保存到 `.local/live-test-report.json`，包含请求 ID、模型版本、检测状态、耗时及脱敏后的示例，目录已被 Git 忽略。失败时先检查报告：无 HTTP 状态多为网络问题，非 200 或 `partial` 是服务/协议问题；完整响应下合成敏感值仍残留时，需要检查检测召回。示例命中不代表对所有数据都有相同识别率。
+
+可指定开发检测服务或调整单次 hook 的超时：
+
+```sh
+ZEROCLAVE_ENDPOINT=http://localhost:8080/v1/pii/detect npm run test:live
+ZEROCLAVE_TIMEOUT_MS=30000 npm run test:live
+```
+
+这一步验证到 SDK 导出边界；若还要验证 Langfuse 页面、网络传输及持久化，需在自己的 Langfuse 项目中使用接入示例，并检查实际 Trace。脚本没有做这一层云端验证。
+
 包使用 ESM，没有 Langfuse 运行时依赖；Langfuse 与 OpenTelemetry 只用于开发阶段的真实 SDK 集成测试和示例类型检查。贡献说明见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ## 开源协议

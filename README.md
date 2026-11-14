@@ -122,6 +122,25 @@ npm pack --dry-run
 
 Tests mock the ZeroClave service and use an in-memory Langfuse exporter. They make no calls to the production detection endpoint and do not measure model accuracy or production availability. CI runs on Node 22 and 24.
 
+### Manual live-service test
+
+```sh
+npm run test:live
+```
+
+This separate command sends built-in synthetic names, phone numbers and `example.com` email addresses to the real ZeroClave detector over HTTPS, then runs the real Langfuse processor with an in-memory exporter. No ZeroClave API key or Langfuse account is required. It does not write traces to Langfuse Cloud and is excluded from the default tests and CI.
+
+A pass requires every request to complete with HTTP 200, all expected synthetic canaries to disappear from input/output/metadata, valid JSON, preserved emoji and non-text primitives, and no SDK failure sentinel. Failure exits nonzero: a request succeeding or a field being fully masked after an error does not count as a live-test pass.
+
+The report at `.local/live-test-report.json` records request IDs, model versions, statuses, timings and the masked fixture. The directory is ignored by Git. No HTTP status usually indicates transport failure; non-200 or `partial` indicates service/protocol failure. Residual synthetic canaries after complete detection require a recall review. Passing these fixtures is not a general accuracy benchmark.
+
+```sh
+ZEROCLAVE_ENDPOINT=http://localhost:8080/v1/pii/detect npm run test:live
+ZEROCLAVE_TIMEOUT_MS=30000 npm run test:live
+```
+
+This validates the SDK export boundary. To verify Langfuse transport, persistence and UI, run the instrumentation example with your own Langfuse project and inspect its trace separately.
+
 The package is ESM and has no runtime dependency on Langfuse. Langfuse and OpenTelemetry are development dependencies for real SDK integration tests and the type-checked example. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
