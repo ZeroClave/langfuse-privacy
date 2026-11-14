@@ -11,7 +11,7 @@
     body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
     button, textarea { font: inherit; }
     button { cursor: pointer; }
-    button:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #b9a8eb; outline-offset: 3px; }
+    button:focus-visible, textarea:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #b9a8eb; outline-offset: 3px; }
     button:disabled { cursor: wait; }
     .app { width: min(1220px, calc(100% - 64px)); margin: 0 auto; }
     header { display: flex; align-items: center; justify-content: space-between; padding: 31px 0; border-bottom: 1px solid var(--line); gap: 16px; }
@@ -67,6 +67,9 @@
     .status[data-state="error"]::before { background: #bb7373; }
     @keyframes pulse { 50% { opacity: .35; } }
     .result-footnote { color: #8c9590; }
+    .trace-link { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 6px; padding: 8px 10px; border: 1px solid #c9dfd2; border-radius: 7px; background: var(--green-soft); color: var(--green); font-size: 11px; font-weight: 550; text-decoration: none; white-space: nowrap; }
+    .trace-link:hover { background: #e3f0e8; border-color: #a9cdb9; }
+    .trace-link[hidden] { display: none; }
     .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr 1.45fr; margin: 20px 0; background: #efede9; border: 1px solid var(--line); border-radius: 10px; padding: 17px 0; }
     .metric { padding: 0 22px; min-width: 0; }
     .metric + .metric { border-left: 1px solid #dfdbd5; }
@@ -100,10 +103,10 @@
     </header>
     <main>
       <section class="intro" aria-labelledby="page-title">
-        <div><h1 id="page-title">看看日志脱敏后的样子</h1><p class="description">输入一段文本，查看敏感信息在导出到 Langfuse 前如何被替换。</p></div>
-        <div class="flow" aria-hidden="true"><span>原始文本</span><span class="arrow">→</span><span>ZeroClave 检测</span><span class="arrow">→</span><span>应用内脱敏</span></div>
+        <div><h1 id="page-title">看看日志脱敏后的样子</h1><p class="description">输入一段文本，查看脱敏结果与 Langfuse 实际入库记录。</p></div>
+        <div class="flow" aria-hidden="true"><span>原始文本</span><span class="arrow">→</span><span>检测脱敏</span><span class="arrow">→</span><span>Langfuse 入库</span></div>
       </section>
-      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 1 1 7 0V8M10 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>文本会发送至 ZeroClave 检测；本演示不写入 Langfuse 云端。建议使用下方合成示例。</span></div>
+      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 1 1 7 0V8M10 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>文本会发送至 ZeroClave 检测；脱敏后的 Trace 会写入当前 Langfuse 项目。建议先使用合成示例。</span></div>
       <form id="demo-form">
         <div class="workspace">
           <section class="panel" aria-labelledby="input-title">
@@ -112,15 +115,15 @@
             <div class="panel-foot"><span class="count" id="input-count">0 / 10,000 字符</span><button class="run" id="run" type="submit"><svg id="run-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="spinner" id="spinner" hidden aria-hidden="true"></span><span id="run-label">运行脱敏</span></button></div>
           </section>
           <section class="panel" id="result-panel" aria-labelledby="result-title" aria-busy="false">
-            <div class="panel-head"><div><h2 class="panel-title" id="result-title">脱敏结果</h2><span class="panel-caption">导出前的文本</span></div><span class="status" id="status" data-state="idle" role="status" aria-live="polite">等待运行</span></div>
+            <div class="panel-head"><div><h2 class="panel-title" id="result-title">脱敏结果</h2><span class="panel-caption">脱敏后写入 Langfuse</span></div><span class="status" id="status" data-state="idle" role="status" aria-live="polite">等待运行</span></div>
             <pre class="result empty" id="result" aria-live="polite">运行后，脱敏结果会显示在这里。</pre>
-            <div class="panel-foot"><span class="result-footnote" id="result-note">识别到的敏感信息将替换为占位符</span><span>应用内替换</span></div>
+            <div class="panel-foot"><span class="result-footnote" id="result-note">识别到的敏感信息将替换为占位符</span><a class="trace-link" id="trace-link" target="_blank" rel="noopener noreferrer" hidden>在 Langfuse 查看 Trace ↗</a></div>
           </section>
         </div>
       </form>
       <div class="metrics" aria-label="本次运行统计"><div class="metric"><span class="metric-label">处理耗时</span><span class="metric-value" id="duration">—</span></div><div class="metric"><span class="metric-label">识别实体</span><span class="metric-value" id="entities">—</span></div><div class="metric"><span class="metric-label">检测请求</span><span class="metric-value" id="requests">—</span></div><div class="metric model"><span class="metric-label">检测模型</span><span class="metric-value" id="model">—</span></div></div>
       <p class="error" id="error" role="alert" hidden></p>
-      <details><summary>Langfuse 最终导出字段<span class="export-hint">本演示仅在内存中生成</span></summary><pre class="export-data" id="export">运行后，可在这里查看最终导出字段。</pre></details>
+      <details><summary>Langfuse 已入库记录<span class="export-hint">由真实服务 API 回查确认</span></summary><pre class="export-data" id="export">运行并确认入库后，可在这里查看 Langfuse 已入库记录。</pre></details>
     </main>
     <footer><span>自动检测可能存在漏检，请结合实际业务评估脱敏效果。</span><span>@zeroclave/langfuse-privacy</span></footer>
   </div>
@@ -130,7 +133,7 @@
       zh: '请联系客户王小明，邮箱 xiaoming.wang@example.com。\n客户希望了解订单 DEMO-2026-001 的配送进度，请在明天下午回复。',
       en: 'Please contact Alice Johnson at alice.johnson@example.com or +1 202-555-0143.\nThe customer would like an update on order DEMO-2026-001. Please reply tomorrow afternoon.',
     };
-    const elements = Object.fromEntries(['demo-form', 'source', 'run', 'run-icon', 'spinner', 'run-label', 'result-panel', 'status', 'result', 'result-note', 'input-count', 'duration', 'entities', 'requests', 'model', 'error', 'export'].map(id => [id, document.getElementById(id)]));
+    const elements = Object.fromEntries(['demo-form', 'source', 'run', 'run-icon', 'spinner', 'run-label', 'result-panel', 'status', 'result', 'result-note', 'input-count', 'duration', 'entities', 'requests', 'model', 'error', 'export', 'trace-link'].map(id => [id, document.getElementById(id)]));
     const presets = [...document.querySelectorAll('[data-example]')];
     let running = false;
     let hasResult = false;
@@ -147,7 +150,9 @@
       hasResult = false;
       elements.result.textContent = message;
       elements.result.classList.add('empty');
-      elements.export.textContent = '运行后，可在这里查看最终导出字段。';
+      elements.export.textContent = '运行并确认入库后，可在这里查看 Langfuse 已入库记录。';
+      elements['trace-link'].hidden = true;
+      elements['trace-link'].removeAttribute('href');
       elements['result-note'].textContent = '识别到的敏感信息将替换为占位符';
       elements.error.hidden = true;
       elements.error.textContent = '';
@@ -163,7 +168,7 @@
       presets.forEach(button => { button.disabled = value; });
       elements.spinner.hidden = !value;
       elements['run-icon'].toggleAttribute('hidden', value);
-      elements['run-label'].textContent = value ? '正在脱敏' : '运行脱敏';
+      elements['run-label'].textContent = value ? '正在处理' : '运行脱敏';
       elements['result-panel'].setAttribute('aria-busy', String(value));
     }
     function selectExample(key) {
@@ -174,9 +179,25 @@
       updateCount();
       setStatus('等待运行', 'idle');
     }
+    function safeTraceUrl(value) {
+      if (typeof value !== 'string' || value.length > 4096) return null;
+      try {
+        const url = new URL(value);
+        if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+        return url.href;
+      } catch {
+        return null;
+      }
+    }
     function validResponse(value) {
       if (!value || value.ok !== true || typeof value.maskedText !== 'string' || value.maskedText.length > 500000 || !value.attributes || typeof value.attributes !== 'object' || Array.isArray(value.attributes)) return false;
       const stats = value.stats;
+      const langfuse = value.langfuse;
+      if (!langfuse || langfuse.persisted !== true
+        || typeof langfuse.traceId !== 'string' || !langfuse.traceId.trim() || langfuse.traceId.length > 128
+        || typeof langfuse.observationId !== 'string' || !langfuse.observationId.trim() || langfuse.observationId.length > 128
+        || !langfuse.observation || typeof langfuse.observation !== 'object' || Array.isArray(langfuse.observation)
+        || !safeTraceUrl(langfuse.traceUrl)) return false;
       return stats && Number.isFinite(stats.durationMs) && stats.durationMs >= 0
         && Number.isSafeInteger(stats.requests) && stats.requests >= 0
         && Number.isSafeInteger(stats.entities) && stats.entities >= 0
@@ -200,12 +221,12 @@
         elements.source.focus();
         return;
       }
-      clearResult('正在检测并替换敏感信息…');
+      clearResult('正在检测敏感信息 → 发送脱敏 Trace → 确认 Langfuse 入库，最多等待 45 秒…');
       setLoading(true);
-      setStatus('检测中', 'loading');
+      setStatus('检测 · 发送 · 确认入库', 'loading');
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 45000);
-      let failureMessage = '本次脱敏未完成，请稍后重试。';
+      let failureMessage = '本次运行未能完成确认，请重试或检查 Langfuse。';
       try {
         const response = await fetch('/api/demo', {
           method: 'POST',
@@ -227,7 +248,9 @@
         const { stats } = value;
         elements.result.textContent = value.maskedText;
         elements.result.classList.remove('empty');
-        elements.export.textContent = JSON.stringify(value.attributes, null, 2);
+        elements.export.textContent = JSON.stringify(value.langfuse.observation, null, 2);
+        elements['trace-link'].href = safeTraceUrl(value.langfuse.traceUrl);
+        elements['trace-link'].hidden = false;
         elements.duration.textContent = stats.durationMs < 1000 ? Math.round(stats.durationMs) + ' ms' : (stats.durationMs / 1000).toFixed(2) + ' s';
         elements.entities.textContent = stats.entities.toLocaleString('zh-CN') + ' 个';
         elements.requests.textContent = stats.requests.toLocaleString('zh-CN') + ' 次';
@@ -235,16 +258,16 @@
         elements.model.title = stats.modelVersion;
         hasResult = true;
         if (stats.status === 'masked') {
-          setStatus('已脱敏', 'success');
-          elements['result-note'].textContent = '敏感信息已替换，请查看并确认结果';
+          setStatus('已脱敏 · 已入库', 'success');
+          elements['result-note'].textContent = '敏感信息已替换，Langfuse 已确认入库';
         } else {
-          setStatus('未发现敏感信息', 'neutral');
-          elements['result-note'].textContent = '本次未识别到实体，结果保留原文；这不代表文本一定无敏感信息';
+          setStatus('未发现实体 · 已入库', 'neutral');
+          elements['result-note'].textContent = '未发现实体，原文已入库；这不代表一定无敏感信息';
         }
       } catch {
-        clearResult('本次运行未完成，未生成脱敏结果。');
-        setStatus('未完成', 'error');
-        elements.error.textContent = controller.signal.aborted ? '请求已超时，请稍后重新运行。' : failureMessage;
+        clearResult('本次运行未能完成确认，请重试或检查 Langfuse。');
+        setStatus('尚未完成确认', 'error');
+        elements.error.textContent = controller.signal.aborted ? '等待确认已超时，请检查 Langfuse 中是否已有本次 Trace。' : failureMessage;
         elements.error.hidden = false;
       } finally {
         clearTimeout(timer);

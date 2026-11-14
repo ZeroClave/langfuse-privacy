@@ -2,11 +2,11 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { LangfuseSpanProcessor } from '@langfuse/otel';
-import { BasicTracerProvider, InMemorySpanExporter } from '@opentelemetry/sdk-trace-base';
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base';
 import { createZeroClaveMask, DEFAULT_ZEROCLAVE_ENDPOINT } from '../dist/index.js';
+import { langfuseConfig, waitForObservation, traceUrl } from './langfuse.mjs';
 
 const INPUT = 'langfuse.observation.input';
-const FAILURE_MASK = '<fully masked due to failed mask function>';
 const MAX_BODY_BYTES = 65_536;
 
 function json(response, status, value) {
@@ -33,7 +33,9 @@ export async function createDemoServer({
   endpoint = DEFAULT_ZEROCLAVE_ENDPOINT,
   timeoutMs = 15_000,
   fetch: fetcher = globalThis.fetch,
+  langfuse,
 } = {}) {
+  const project = langfuseConfig(langfuse);
   const page = await readFile(new URL('./index.html', import.meta.url));
   // Validate configuration at startup rather than making every request fail later.
   createZeroClaveMask({ endpoint, timeoutMs, maxRetries: 0, fetch: fetcher });
@@ -52,7 +54,7 @@ export async function createDemoServer({
       return;
     }
     if (request.method === 'GET' && path === '/healthz') {
-      json(response, 200, { ok: true, service: 'zeroclave-langfuse-demo' });
+      json(response, 200, { ok: true, service: 'zeroclave-langfuse-demo', langfuseConfigured: true });
       return;
     }
     if (request.method !== 'POST' || path !== '/api/demo') {
@@ -107,32 +109,49 @@ export async function createDemoServer({
         }
         return result;
       };
-      const mask = createZeroClaveMask({ endpoint, timeoutMs, maxRetries: 0, fetch: observedFetch });
-      const exporter = new InMemorySpanExporter();
+      const privacyMask = createZeroClaveMask({ endpoint, timeoutMs, maxRetries: 0, fetch: observedFetch });
+      let maskingFailed = false;
+      const mask = async (params) => {
+        try { return await privacyMask(params); }
+        catch (error) { maskingFailed = true; throw error; }
+      };
+      // A single processor masks before its default OTLP exporter sends anything.
+      // Adding a second processor could race asynchronous masking and export raw input.
       provider = new BasicTracerProvider({ spanProcessors: [new LangfuseSpanProcessor({
-        exporter,
+        publicKey: project.publicKey,
+        secretKey: project.secretKey,
+        baseUrl: project.baseUrl,
         exportMode: 'immediate',
         mediaUploadEnabled: false,
         shouldExportSpan: () => true,
         mask,
       })] });
       const span = provider.getTracer('zeroclave-demo').startSpan('privacy-demo');
+      const { traceId, spanId } = span.spanContext();
+      const spanStartedAt = Date.now();
       span.setAttribute(INPUT, JSON.stringify({ messages: [{ role: 'user', content: text }] }));
       span.end();
       await provider.forceFlush();
-      const spans = exporter.getFinishedSpans();
-      if (spans.length !== 1 || typeof spans[0].attributes[INPUT] !== 'string'
-        || spans[0].attributes[INPUT] === FAILURE_MASK) throw new Error('detection_failed');
-      const attributes = { ...spans[0].attributes };
-      const masked = JSON.parse(attributes[INPUT]);
+      if (maskingFailed) throw new Error('detection_failed');
+      const stored = await waitForObservation(project, { traceId, spanId, startTime: spanStartedAt, signal: disconnect.signal });
+      const masked = typeof stored.input === 'string' ? JSON.parse(stored.input) : stored.input;
       const maskedText = masked?.messages?.[0]?.content;
       if (typeof maskedText !== 'string') throw new Error('invalid_output');
       stats.durationMs = Math.round(performance.now() - startedAt);
       stats.status = stats.entities > 0 ? 'masked' : 'no_findings';
-      json(response, 200, { ok: true, maskedText, attributes, stats });
+      // Display only the object read back from Langfuse, never a local export preview.
+      const observation = {
+        id: stored.id, traceId: stored.traceId, name: stored.name, type: stored.type,
+        input: masked, output: stored.output, metadata: stored.metadata,
+        startTime: stored.startTime, endTime: stored.endTime,
+      };
+      json(response, 200, {
+        ok: true, maskedText, attributes: { [INPUT]: JSON.stringify(masked) }, stats,
+        langfuse: { persisted: true, traceId, observationId: spanId, traceUrl: traceUrl(project, traceId), observation },
+      });
     } catch {
       if (!response.destroyed && !response.headersSent) {
-        json(response, 503, { ok: false, error: '检测未能完整完成，本次结果已屏蔽，请稍后重试。' });
+        json(response, 503, { ok: false, error: '未能完成检测或确认 Langfuse 入库，请稍后重试或检查服务。' });
       }
     } finally {
       await provider?.shutdown().catch(() => {});
@@ -142,6 +161,8 @@ export async function createDemoServer({
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try { process.loadEnvFile(); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   const host = process.env.HOST ?? '127.0.0.1';
   const port = Number(process.env.PORT ?? 3017);
   const server = await createDemoServer({
@@ -154,6 +175,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   server.listen(port, host, () => console.log(`ZeroClave Langfuse demo listening on ${host}:${port}`));
   for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
     server.close(() => process.exit(0));
-    setTimeout(() => process.exit(1), 20_000).unref();
+    setTimeout(() => process.exit(1), 45_000).unref();
   });
 }

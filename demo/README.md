@@ -1,21 +1,48 @@
-# Browser demo
+# Browser demo with real Langfuse storage
 
-The demo sends text to the real ZeroClave detector, runs the actual Langfuse span processor, and displays the masked text and final in-memory export. It does not generate an LLM response or persist a trace to Langfuse Cloud. No Langfuse account or keys are required.
+The demo sends text to ZeroClave for detection, masks it in the application, and uses the actual Langfuse OTLP exporter to send the trace to your Langfuse project. It queries Langfuse's public API by trace/span ID and reports success only after reading back the stored observation. The page displays that stored input and links to the real trace.
+
+## Run
+
+Use a Langfuse Cloud or self-hosted project:
 
 ```sh
 npm ci --ignore-scripts
+cp demo/.env.example .env
+# Fill in project ID, public/secret API keys, and server/UI URLs.
 npm run demo
 ```
 
-Open `http://localhost:3017`. The default listener is loopback. Set `HOST=0.0.0.0` to make it reachable from an OrbStack VM, and `PORT` to select another port. `ZEROCLAVE_ENDPOINT` and `ZEROCLAVE_TIMEOUT_MS` can override the detector URL and the default 15-second budget.
+Open `http://localhost:3017`. The CLI loads `.env`, which is ignored by Git. API keys stay on the server; they are never sent to the browser or ZeroClave. The default listener is loopback. Set `HOST=0.0.0.0` for an OrbStack VM, or `PORT` for another port. `ZEROCLAVE_ENDPOINT` and `ZEROCLAVE_TIMEOUT_MS` override the detector URL and 15-second budget.
 
-Use the built-in synthetic examples first. The service does not write submitted text or results to disk. Text is still sent to the detection service, and the browser displays it on the current page. This is a development demo without accounts or authentication; keep it on your development network.
+`LANGFUSE_BASE_URL` is the backend's Langfuse address. `LANGFUSE_UI_URL` is the browser address for trace links. `LANGFUSE_PROJECT_ID` comes from the project URL. All three and `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` are required; there is no automatic memory-only fallback.
 
-Each request creates an isolated in-memory Langfuse exporter. Inputs are capped at 10,000 UTF-16 units, and the demo permits two concurrent requests. Failed or partial detection produces an error with no original-text fallback. A successful response with no findings is presented as such, without claiming the text contains no PII.
+Use the synthetic examples first. Original text is sent to ZeroClave for detection. **Masked traces are stored in your Langfuse project** and retained according to its policy. The demo server does not separately save submitted text to disk. This development interface has no accounts or authentication; keep it on your development network.
 
-## Linux service
+The demo does not call an LLM. Each request records a span with its input. A single Langfuse processor awaits masking before the default HTTP exporter runs, without a parallel unmasked exporter. Partial/failed detection produces a full-field mask and a page error. If ingestion succeeds but confirmation fails, the page reports failure; a trace may already exist in that case.
 
-Build and run `npm run check` before installing. Use `zeroclave-langfuse-demo.service.in` as a systemd template. Replace `@USER@`, `@ROOT@`, and `@NODE@` with your non-root service user, absolute repository directory, and Node.js executable. Install the rendered file as `/etc/systemd/system/zeroclave-langfuse-demo.service`, then run:
+Inputs are capped at 10,000 UTF-16 units and two concurrent requests. API read-back has a 20-second budget after SDK flush. An empty detection result is shown without claiming that the text contains no PII.
+
+## Local Langfuse on Linux
+
+The optional bootstrap follows the [official v4.80.0 compose](https://github.com/langfuse/langfuse/blob/v4.80.0/docker-compose.yml) and [headless initialization](https://langfuse.com/self-hosting/administration/headless-initialization). It requires Docker Compose, Python and PyYAML. It runs web, worker, PostgreSQL, ClickHouse, Redis and MinIO, with separate persistent named volumes. It does not start AI Gateway.
+
+```sh
+mkdir -p ~/apps/langfuse
+curl -fLsS https://raw.githubusercontent.com/langfuse/langfuse/v4.80.0/docker-compose.yml \
+  -o ~/apps/langfuse/docker-compose.upstream.yml
+python3 demo/setup-langfuse.py ~/apps/langfuse
+cd ~/apps/langfuse
+sudo docker-compose -p zeroclave-langfuse up -d
+```
+
+The bootstrap creates host-local `.env` and `demo.env` with random credentials and mode 0600, preserving credentials on later runs. Copy `demo.env` to the demo checkout's `.env`. Login details are `LANGFUSE_INIT_USER_EMAIL` / `LANGFUSE_INIT_USER_PASSWORD` in the stack's `.env`; do not expose or commit it. Set `NEXTAUTH_URL` before initial startup if the browser address differs from `http://127.0.0.1:3000`.
+
+Keep the named volumes to preserve traces. `docker-compose down` stops containers; `down -v` deletes databases and stored traces.
+
+## Linux demo service
+
+Build and run `npm run check`. Render `zeroclave-langfuse-demo.service.in` with your non-root `@USER@`, absolute checkout `@ROOT@`, and `@NODE@` executable. Install the result in `/etc/systemd/system/zeroclave-langfuse-demo.service`. Credentials are read from `@ROOT@/.env`.
 
 ```sh
 sudo systemctl daemon-reload
@@ -23,4 +50,4 @@ sudo systemctl enable --now zeroclave-langfuse-demo
 sudo systemctl status zeroclave-langfuse-demo
 ```
 
-The template listens on all interfaces at port 3017 and restarts on failure. It runs with read-only access to the application directory.
+The service listens on port 3017 with read-only application access and restarts on failure.

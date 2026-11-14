@@ -114,7 +114,7 @@ try {
 
 ## Development
 
-Run `npm run demo` and open `http://localhost:3017` for a browser comparison of original text, masked text, and the real Langfuse SDK's final in-memory export. It calls the real ZeroClave service, without writing to Langfuse Cloud. See [demo/README.md](./demo/README.md) for deployment.
+Configure a Langfuse project in `.env`, run `npm run demo`, and open `http://localhost:3017` to compare original text with the masked content actually stored in Langfuse. The demo uses the SDK's real HTTP exporter and confirms persistence through Langfuse's public API before reporting success. See [demo/README.md](./demo/README.md) for deployment.
 
 ```sh
 npm ci --ignore-scripts
@@ -122,7 +122,7 @@ npm run check
 npm pack --dry-run
 ```
 
-Tests mock the ZeroClave service and use an in-memory Langfuse exporter. They make no calls to the production detection endpoint and do not measure model accuracy or production availability. CI runs on Node 22 and 24.
+Tests mock the ZeroClave service. SDK tests use an in-memory exporter; demo tests exercise the actual HTTP exporter against a local collector fixture and require a successful observation read-back. They make no production calls and do not measure model accuracy or production availability. CI runs on Node 22 and 24.
 
 ### Manual live-service test
 

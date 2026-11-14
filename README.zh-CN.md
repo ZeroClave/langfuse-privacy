@@ -101,7 +101,7 @@ const mask = createZeroClaveMask({
 
 ## 开发与测试
 
-需要在浏览器中对比原文、脱敏结果及真实 Langfuse SDK 的导出字段时，运行 `npm run demo`，打开 `http://localhost:3017`。演示连接真实 ZeroClave，不向 Langfuse Cloud 写入数据。部署方式见 [demo/README.md](./demo/README.md)。
+在 `.env` 配置 Langfuse 项目后，运行 `npm run demo`，打开 `http://localhost:3017`。演示会真实发送脱敏后的 Trace，查询 Langfuse 服务端确认入库，再展示已存储内容和对应 Trace 链接。部署方式见 [demo/README.md](./demo/README.md)。
 
 ```sh
 npm ci --ignore-scripts
@@ -109,7 +109,7 @@ npm run check
 npm pack --dry-run
 ```
 
-测试使用 mock ZeroClave 服务与真实 Langfuse SDK 的内存 exporter，不调用生产检测接口，也不验证实际模型准确率或线上可用性。CI 在 Node 22 和 24 上运行。
+测试使用 mock ZeroClave 服务；SDK 测试使用内存 exporter，演示测试通过实际 HTTP exporter 发送至本地收集端 fixture，并要求查询回已存储的观察记录。自动测试不调用生产服务，也不验证实际模型准确率或线上可用性。CI 在 Node 22 和 24 上运行。
 
 ### 本地连接真实 SaaS 测试
 
