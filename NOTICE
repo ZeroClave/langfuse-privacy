@@ -1,0 +1,8 @@
+ZeroClave Privacy for Langfuse
+Copyright 2026 ZeroClave contributors
+
+The detection protocol and Unicode offset handling follow ZeroClave's
+Apache-2.0 licensed @zeroclave/dsh-privacy integration:
+https://github.com/ZeroClave/zeroclave-dsh-privacy
+
+Langfuse is a separate project. This package is maintained by ZeroClave.

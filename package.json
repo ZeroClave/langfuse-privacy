@@ -1,0 +1,59 @@
+{
+  "name": "@zeroclave/langfuse-privacy",
+  "version": "0.1.0-alpha.1",
+  "description": "Privacy masking for Langfuse using ZeroClave PII detection",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.examples.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check": "npm run typecheck && npm test",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZeroClave/langfuse-privacy.git"
+  },
+  "homepage": "https://github.com/ZeroClave/langfuse-privacy#readme",
+  "bugs": {
+    "url": "https://github.com/ZeroClave/langfuse-privacy/issues"
+  },
+  "keywords": [
+    "langfuse",
+    "zeroclave",
+    "privacy",
+    "pii",
+    "masking",
+    "redaction",
+    "observability"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@langfuse/otel": "6.1.1",
+    "@opentelemetry/sdk-node": "0.223.2",
+    "@opentelemetry/sdk-trace-base": "^2.0.0",
+    "typescript": "~5.9.3"
+  }
+}
