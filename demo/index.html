@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>ZeroClave × Langfuse</title>
+  <style>
+    :root { --page: #f6f5f2; --surface: #fff; --ink: #25232b; --muted: #77747e; --line: #e8e5e0; --purple: #6951bc; --purple-soft: #f0ecfa; --green: #2f795f; --green-soft: #eef6f1; --red: #a44848; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #b9a8eb; outline-offset: 3px; }
+    button:disabled { cursor: wait; }
+    .app { width: min(1220px, calc(100% - 64px)); margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 31px 0; border-bottom: 1px solid var(--line); gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 650; letter-spacing: -.5px; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 36px; border-radius: 10px; background: var(--ink); color: #f2f0ff; }
+    .brand svg { width: 20px; height: 20px; }
+    .cross { color: #b6b0bc; font-weight: 400; margin: 0 3px; }
+    .partner { font-weight: 500; color: #6f6977; }
+    .header-tag { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    main { padding: 35px 0 0; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 23px; }
+    h1 { margin: 0 0 9px; font-size: 25px; font-weight: 600; letter-spacing: -.65px; }
+    .description { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .flow { display: flex; align-items: center; gap: 9px; color: #8c8792; font-size: 11px; white-space: nowrap; padding-bottom: 2px; }
+    .flow span:last-child { color: var(--green); }
+    .arrow { color: #b5afb9; }
+    .privacy-note { display: flex; align-items: flex-start; gap: 9px; color: #665c76; border: 1px solid #e5ddf2; background: #f2eef8; border-radius: 9px; padding: 12px 15px; font-size: 12px; line-height: 1.6; margin-bottom: 21px; }
+    .privacy-note svg { flex: none; width: 15px; height: 15px; margin-top: 2px; }
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { display: flex; flex-direction: column; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 3px 11px #3b303803; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 21px 16px; min-height: 75px; gap: 10px; }
+    .panel-title { font-size: 14px; font-weight: 600; margin: 0 0 5px; }
+    .panel-caption { font-size: 11px; color: #918a97; }
+    .presets { display: flex; gap: 4px; padding: 3px; background: #f5f4f2; border-radius: 7px; }
+    .preset { border: 0; background: transparent; border-radius: 5px; padding: 6px 9px; color: #77717d; font-size: 11px; }
+    .preset:hover { background: #eae7e2; color: var(--ink); }
+    .preset[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px #2a223311; }
+    textarea, .result { width: 100%; min-height: 296px; margin: 0; padding: 7px 21px 20px; border: 0; background: transparent; color: #45404d; font-size: 14px; line-height: 1.95; overflow-wrap: anywhere; }
+    textarea { resize: vertical; outline: none; }
+    textarea:focus-visible { outline-offset: -4px; border-radius: 8px; }
+    textarea::placeholder { color: #b1aab6; }
+    .result { flex: 1; white-space: pre-wrap; font-family: inherit; }
+    .result.empty { color: #aaa3af; font-size: 13px; }
+    .panel-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding: 13px 21px; border-top: 1px solid #f0ede9; min-height: 57px; color: #9d96a2; font-size: 11px; }
+    .count { font-variant-numeric: tabular-nums; }
+    .run { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #6048b3; border-radius: 7px; padding: 9px 16px; background: var(--purple); color: #fff; font-weight: 500; font-size: 12px; box-shadow: 0 2px 3px #3823620e; min-width: 111px; }
+    .run:hover:not(:disabled) { background: #5b43ad; }
+    .run:disabled { opacity: .72; }
+    .run svg { width: 13px; height: 13px; }
+    .run svg[hidden] { display: none; }
+    .spinner { width: 12px; height: 12px; border: 1.5px solid #ffffff65; border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .spinner[hidden] { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status { display: inline-flex; align-items: center; gap: 6px; color: #97909e; font-size: 11px; }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c5bec9; flex: none; }
+    .status[data-state="loading"] { color: var(--purple); }
+    .status[data-state="loading"]::before { background: #9f87dc; animation: pulse 1.2s ease-in-out infinite; }
+    .status[data-state="success"] { color: var(--green); }
+    .status[data-state="success"]::before { background: #559c7e; }
+    .status[data-state="neutral"] { color: #8b744a; }
+    .status[data-state="neutral"]::before { background: #b69a6a; }
+    .status[data-state="error"] { color: var(--red); }
+    .status[data-state="error"]::before { background: #bb7373; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .result-footnote { color: #8c9590; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr 1.45fr; margin: 20px 0; background: #efede9; border: 1px solid var(--line); border-radius: 10px; padding: 17px 0; }
+    .metric { padding: 0 22px; min-width: 0; }
+    .metric + .metric { border-left: 1px solid #dfdbd5; }
+    .metric-label { display: block; color: #918997; font-size: 10px; margin-bottom: 7px; }
+    .metric-value { display: block; color: #57505e; font-size: 15px; font-weight: 550; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric.model .metric-value { font-size: 12px; line-height: 19px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .error { padding: 11px 14px; margin: 0 0 18px; color: var(--red); background: #f9efec; border: 1px solid #efdcd6; border-radius: 8px; font-size: 12px; line-height: 1.6; }
+    .error[hidden] { display: none; }
+    details { border: 1px solid var(--line); border-radius: 10px; background: #fbfaf8; overflow: hidden; }
+    summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; padding: 16px 19px; color: #746c7c; font-size: 12px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: "›"; font-size: 18px; color: #a39ba9; line-height: 12px; transform-origin: 50% 50%; }
+    details[open] summary::before { transform: rotate(90deg); }
+    .export-hint { margin-left: auto; color: #a29aa8; font-size: 10px; }
+    .export-data { margin: 0; padding: 17px 20px 22px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; color: #696170; font: 11px/1.85 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; max-height: 370px; overflow-y: auto; }
+    footer { padding: 25px 0 35px; display: flex; justify-content: space-between; gap: 20px; color: #a49ca9; font-size: 10px; line-height: 1.7; }
+    footer span:last-child { white-space: nowrap; }
+    @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; } }
+    @media (max-width: 850px) { .flow { display: none; } .app { width: calc(100% - 40px); } }
+    @media (max-width: 640px) { .app { width: calc(100% - 28px); } header { padding: 22px 0; } .brand { font-size: 15px; gap: 9px; } .header-tag { font-size: 10px; } main { padding-top: 26px; } h1 { font-size: 22px; } .workspace { grid-template-columns: 1fr; gap: 15px; } textarea, .result { min-height: 205px; font-size: 13px; } .metrics { grid-template-columns: 1fr 1fr; gap: 18px 0; } .metric:nth-child(3) { border-left: 0; } .metric { padding: 0 18px; } .export-hint { display: none; } footer { display: block; padding-bottom: 25px; } footer span { display: block; } footer span:last-child { margin-top: 5px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5.1c0 4.3 3.1 7.9 7.5 9.9 4.4-2 7.5-5.6 7.5-9.9V6L12 3Z" stroke="currentColor" stroke-width="1.5"/><path d="m8.5 11.8 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span>ZeroClave <span class="cross">×</span> <span class="partner">Langfuse</span></span>
+      </div>
+      <span class="header-tag">隐私脱敏 · 在线演示</span>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><h1 id="page-title">看看日志脱敏后的样子</h1><p class="description">输入一段文本，查看敏感信息在导出到 Langfuse 前如何被替换。</p></div>
+        <div class="flow" aria-hidden="true"><span>原始文本</span><span class="arrow">→</span><span>ZeroClave 检测</span><span class="arrow">→</span><span>应用内脱敏</span></div>
+      </section>
+      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 1 1 7 0V8M10 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>文本会发送至 ZeroClave 检测；本演示不写入 Langfuse 云端。建议使用下方合成示例。</span></div>
+      <form id="demo-form">
+        <div class="workspace">
+          <section class="panel" aria-labelledby="input-title">
+            <div class="panel-head"><div><h2 class="panel-title" id="input-title"><label for="source">原始文本</label></h2><span class="panel-caption">输入内容或选择合成示例</span></div><div class="presets" aria-label="示例预设"><button class="preset" type="button" data-example="zh" aria-pressed="true">中文示例</button><button class="preset" type="button" data-example="en" aria-pressed="false">English</button></div></div>
+            <textarea id="source" name="text" maxlength="10000" spellcheck="false" aria-describedby="input-count" placeholder="在这里输入需要脱敏的文本…" required></textarea>
+            <div class="panel-foot"><span class="count" id="input-count">0 / 10,000 字符</span><button class="run" id="run" type="submit"><svg id="run-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="spinner" id="spinner" hidden aria-hidden="true"></span><span id="run-label">运行脱敏</span></button></div>
+          </section>
+          <section class="panel" id="result-panel" aria-labelledby="result-title" aria-busy="false">
+            <div class="panel-head"><div><h2 class="panel-title" id="result-title">脱敏结果</h2><span class="panel-caption">导出前的文本</span></div><span class="status" id="status" data-state="idle" role="status" aria-live="polite">等待运行</span></div>
+            <pre class="result empty" id="result" aria-live="polite">运行后，脱敏结果会显示在这里。</pre>
+            <div class="panel-foot"><span class="result-footnote" id="result-note">识别到的敏感信息将替换为占位符</span><span>应用内替换</span></div>
+          </section>
+        </div>
+      </form>
+      <div class="metrics" aria-label="本次运行统计"><div class="metric"><span class="metric-label">处理耗时</span><span class="metric-value" id="duration">—</span></div><div class="metric"><span class="metric-label">识别实体</span><span class="metric-value" id="entities">—</span></div><div class="metric"><span class="metric-label">检测请求</span><span class="metric-value" id="requests">—</span></div><div class="metric model"><span class="metric-label">检测模型</span><span class="metric-value" id="model">—</span></div></div>
+      <p class="error" id="error" role="alert" hidden></p>
+      <details><summary>Langfuse 最终导出字段<span class="export-hint">本演示仅在内存中生成</span></summary><pre class="export-data" id="export">运行后，可在这里查看最终导出字段。</pre></details>
+    </main>
+    <footer><span>自动检测可能存在漏检，请结合实际业务评估脱敏效果。</span><span>@zeroclave/langfuse-privacy</span></footer>
+  </div>
+  <script>
+    'use strict';
+    const examples = {
+      zh: '请联系客户王小明，邮箱 xiaoming.wang@example.com。\n客户希望了解订单 DEMO-2026-001 的配送进度，请在明天下午回复。',
+      en: 'Please contact Alice Johnson at alice.johnson@example.com or +1 202-555-0143.\nThe customer would like an update on order DEMO-2026-001. Please reply tomorrow afternoon.',
+    };
+    const elements = Object.fromEntries(['demo-form', 'source', 'run', 'run-icon', 'spinner', 'run-label', 'result-panel', 'status', 'result', 'result-note', 'input-count', 'duration', 'entities', 'requests', 'model', 'error', 'export'].map(id => [id, document.getElementById(id)]));
+    const presets = [...document.querySelectorAll('[data-example]')];
+    let running = false;
+    let hasResult = false;
+
+    function setStatus(text, state) {
+      elements.status.textContent = text;
+      elements.status.dataset.state = state;
+    }
+    function clearMetrics() {
+      for (const id of ['duration', 'entities', 'requests', 'model']) elements[id].textContent = '—';
+      elements.model.removeAttribute('title');
+    }
+    function clearResult(message = '运行后，脱敏结果会显示在这里。') {
+      hasResult = false;
+      elements.result.textContent = message;
+      elements.result.classList.add('empty');
+      elements.export.textContent = '运行后，可在这里查看最终导出字段。';
+      elements['result-note'].textContent = '识别到的敏感信息将替换为占位符';
+      elements.error.hidden = true;
+      elements.error.textContent = '';
+      clearMetrics();
+    }
+    function updateCount() {
+      elements['input-count'].textContent = elements.source.value.length.toLocaleString('zh-CN') + ' / 10,000 字符';
+    }
+    function setLoading(value) {
+      running = value;
+      elements.run.disabled = value;
+      elements.source.readOnly = value;
+      presets.forEach(button => { button.disabled = value; });
+      elements.spinner.hidden = !value;
+      elements['run-icon'].toggleAttribute('hidden', value);
+      elements['run-label'].textContent = value ? '正在脱敏' : '运行脱敏';
+      elements['result-panel'].setAttribute('aria-busy', String(value));
+    }
+    function selectExample(key) {
+      if (running || !Object.hasOwn(examples, key)) return;
+      elements.source.value = examples[key];
+      presets.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.example === key)));
+      clearResult();
+      updateCount();
+      setStatus('等待运行', 'idle');
+    }
+    function validResponse(value) {
+      if (!value || value.ok !== true || typeof value.maskedText !== 'string' || value.maskedText.length > 500000 || !value.attributes || typeof value.attributes !== 'object' || Array.isArray(value.attributes)) return false;
+      const stats = value.stats;
+      return stats && Number.isFinite(stats.durationMs) && stats.durationMs >= 0
+        && Number.isSafeInteger(stats.requests) && stats.requests >= 0
+        && Number.isSafeInteger(stats.entities) && stats.entities >= 0
+        && typeof stats.modelVersion === 'string' && stats.modelVersion.length <= 256
+        && ['masked', 'no_findings'].includes(stats.status);
+    }
+
+    presets.forEach(button => button.addEventListener('click', () => selectExample(button.dataset.example)));
+    elements.source.addEventListener('input', () => {
+      updateCount();
+      presets.forEach(button => button.setAttribute('aria-pressed', 'false'));
+      if (hasResult || elements.status.dataset.state === 'error') clearResult('原文已修改，重新运行即可查看结果。');
+      setStatus('等待运行', 'idle');
+    });
+
+    elements['demo-form'].addEventListener('submit', async event => {
+      event.preventDefault();
+      if (running) return;
+      const text = elements.source.value;
+      if (!text.trim()) {
+        elements.source.focus();
+        return;
+      }
+      clearResult('正在检测并替换敏感信息…');
+      setLoading(true);
+      setStatus('检测中', 'loading');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45000);
+      let failureMessage = '本次脱敏未完成，请稍后重试。';
+      try {
+        const response = await fetch('/api/demo', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text }),
+          signal: controller.signal,
+          cache: 'no-store',
+          credentials: 'same-origin',
+          redirect: 'error',
+        });
+        if (!response.ok) {
+          if (response.status === 429) failureMessage = '请求较多，请稍后重试。';
+          if (response.status === 413) failureMessage = '文本较长，请缩短后重试。';
+          // Error responses are not rendered: they must never echo submitted text.
+          throw new Error('request_failed');
+        }
+        const value = await response.json();
+        if (!validResponse(value)) throw new Error('invalid_response');
+        const { stats } = value;
+        elements.result.textContent = value.maskedText;
+        elements.result.classList.remove('empty');
+        elements.export.textContent = JSON.stringify(value.attributes, null, 2);
+        elements.duration.textContent = stats.durationMs < 1000 ? Math.round(stats.durationMs) + ' ms' : (stats.durationMs / 1000).toFixed(2) + ' s';
+        elements.entities.textContent = stats.entities.toLocaleString('zh-CN') + ' 个';
+        elements.requests.textContent = stats.requests.toLocaleString('zh-CN') + ' 次';
+        elements.model.textContent = stats.modelVersion || '—';
+        elements.model.title = stats.modelVersion;
+        hasResult = true;
+        if (stats.status === 'masked') {
+          setStatus('已脱敏', 'success');
+          elements['result-note'].textContent = '敏感信息已替换，请查看并确认结果';
+        } else {
+          setStatus('未发现敏感信息', 'neutral');
+          elements['result-note'].textContent = '本次未识别到实体，结果保留原文；这不代表文本一定无敏感信息';
+        }
+      } catch {
+        clearResult('本次运行未完成，未生成脱敏结果。');
+        setStatus('未完成', 'error');
+        elements.error.textContent = controller.signal.aborted ? '请求已超时，请稍后重新运行。' : failureMessage;
+        elements.error.hidden = false;
+      } finally {
+        clearTimeout(timer);
+        setLoading(false);
+      }
+    });
+    selectExample('zh');
+  </script>
+</body>
+</html>

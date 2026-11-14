@@ -114,6 +114,8 @@ try {
 
 ## Development
 
+Run `npm run demo` and open `http://localhost:3017` for a browser comparison of original text, masked text, and the real Langfuse SDK's final in-memory export. It calls the real ZeroClave service, without writing to Langfuse Cloud. See [demo/README.md](./demo/README.md) for deployment.
+
 ```sh
 npm ci --ignore-scripts
 npm run check

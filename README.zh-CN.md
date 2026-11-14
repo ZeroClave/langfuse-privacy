@@ -101,6 +101,8 @@ const mask = createZeroClaveMask({
 
 ## 开发与测试
 
+需要在浏览器中对比原文、脱敏结果及真实 Langfuse SDK 的导出字段时，运行 `npm run demo`，打开 `http://localhost:3017`。演示连接真实 ZeroClave，不向 Langfuse Cloud 写入数据。部署方式见 [demo/README.md](./demo/README.md)。
+
 ```sh
 npm ci --ignore-scripts
 npm run check
