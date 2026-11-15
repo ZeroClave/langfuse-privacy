@@ -2,13 +2,54 @@
 
 [简体中文](./README.zh-CN.md)
 
-Mask sensitive text before Langfuse exports your traces. An open source adapter maintained by [ZeroClave](https://zeroclave.com), with no runtime dependencies.
+**`@zeroclave/langfuse-privacy`** masks sensitive text before Langfuse exports your traces. Add one hook to your existing Langfuse processor, detect sensitive text with [ZeroClave](https://zeroclave.com), and replace it inside your application process.
 
 ```ts
 new LangfuseSpanProcessor({ mask: createZeroClaveMask() });
 ```
 
-**Status:** `0.1.0-alpha.1`, JavaScript/TypeScript, Node.js 22+. Tested against `@langfuse/otel` 6.1.1. This repository contains the initial implementation; npm publication is a separate release step.
+- Preserve nested objects, arrays, serialized JSON and tool arguments.
+- Mask the whole supported field if detection fails, instead of exporting its original text.
+- Keep your existing Langfuse project and SDK exporter. The adapter has no runtime dependencies.
+
+**Data flow:** original text goes to ZeroClave over HTTPS for detection; replacement happens in your application before Langfuse export. See [privacy scope](#privacy-scope) for the fields this hook covers.
+
+**Status:** `0.1.0-alpha.1` · JavaScript/TypeScript · Node.js 22+ · tested against `@langfuse/otel` 6.1.1. The package has not yet been published to npm; install from a local checkout as shown below.
+
+## See it in action
+
+The browser demo compares a synthetic customer message with the masked input read back from a real Langfuse project. It reports success only after Langfuse's public API returns the matching stored observation.
+
+![ZeroClave demo showing a synthetic customer message, masked text, and the observation confirmed in Langfuse](./docs/images/privacy-demo.png)
+
+The same trace is visible in the Langfuse UI, with the masked text in its input:
+
+![Langfuse trace showing the stored input with name, code, and date/time placeholders](./docs/images/langfuse-trace.png)
+
+These screenshots show a real ZeroClave detection request and a self-hosted Langfuse 4.80.0 project using synthetic data. Placeholder types follow the detector response: in this example the email address is labeled `CODE`. Labels and timings can vary; this example is not an accuracy or performance benchmark. The demo records an input span without making an LLM call.
+
+## Run the demo
+
+From a checkout of this repository:
+
+```sh
+npm ci --ignore-scripts
+cp demo/.env.example .env
+# Fill in your Langfuse project configuration before the next command.
+npm run demo
+```
+
+Open `http://localhost:3017`, run a synthetic example, and follow the trace link to inspect the stored result. Configure these values in `.env` for your Langfuse Cloud or self-hosted project:
+
+| Variable | Value |
+| --- | --- |
+| `LANGFUSE_BASE_URL` | Langfuse address reachable by the demo server. |
+| `LANGFUSE_UI_URL` | Langfuse address used by the browser's trace links. |
+| `LANGFUSE_PROJECT_ID` | Project ID from your Langfuse project URL. |
+| `LANGFUSE_PUBLIC_KEY` | Project public API key. |
+| `LANGFUSE_SECRET_KEY` | Project secret API key. |
+
+API keys stay on the demo server. The demo sends original text to ZeroClave for detection and stores masked traces in your Langfuse project. See [demo/README.md](./demo/README.md) for local Langfuse setup and Linux deployment.
 
 ## Quick start
 
@@ -53,7 +94,7 @@ If you already initialize OpenTelemetry, add `mask` to your existing Langfuse pr
 1. Langfuse calls its `mask` hook before exporting supported fields.
 2. The adapter traverses strings in the value, including serialized JSON input/output and nested JSON tool arguments.
 3. It sends text to ZeroClave's detection endpoint, which returns entity ranges and types.
-4. The adapter replaces those ranges **inside your application process**, for example `alice@example.com` → `[REDACTED_EMAIL]`, and returns the masked value to Langfuse.
+4. The adapter replaces those ranges **inside your application process**, using the returned entity types, and returns the masked value to Langfuse. For example, the screenshots show an email address replaced by `[REDACTED_CODE]`.
 
 Objects and arrays retain their structure. Serialized JSON is parsed and re-serialized, so whitespace and duplicate keys may change. Unicode codepoint offsets are converted to JavaScript UTF-16 offsets; overlapping entity ranges are merged. New valid entity types are still masked. The adapter neither changes the application's model request nor stores a restoration mapping.
 
@@ -114,8 +155,6 @@ try {
 
 ## Development
 
-Configure a Langfuse project in `.env`, run `npm run demo`, and open `http://localhost:3017` to compare original text with the masked content actually stored in Langfuse. The demo uses the SDK's real HTTP exporter and confirms persistence through Langfuse's public API before reporting success. See [demo/README.md](./demo/README.md) for deployment.
-
 ```sh
 npm ci --ignore-scripts
 npm run check
@@ -141,7 +180,7 @@ ZEROCLAVE_ENDPOINT=http://localhost:8080/v1/pii/detect npm run test:live
 ZEROCLAVE_TIMEOUT_MS=30000 npm run test:live
 ```
 
-This validates the SDK export boundary. To verify Langfuse transport, persistence and UI, run the instrumentation example with your own Langfuse project and inspect its trace separately.
+This command validates the SDK export boundary. To verify transport, persistence and the Langfuse UI as well, [run the browser demo](#run-the-demo) with your project. The screenshots above were captured from that separate workflow.
 
 The package is ESM and has no runtime dependency on Langfuse. Langfuse and OpenTelemetry are development dependencies for real SDK integration tests and the type-checked example. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 

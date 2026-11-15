@@ -2,6 +2,18 @@
 
 The demo sends text to ZeroClave for detection, masks it in the application, and uses the actual Langfuse OTLP exporter to send the trace to your Langfuse project. It queries Langfuse's public API by trace/span ID and reports success only after reading back the stored observation. The page displays that stored input and links to the real trace.
 
+## Screenshots
+
+The built-in synthetic customer message, its masked result, and the observation read back from Langfuse:
+
+![ZeroClave privacy demo after confirmed Langfuse ingestion](../docs/images/privacy-demo.png)
+
+The corresponding trace in a self-hosted Langfuse 4.80.0 project:
+
+![Langfuse trace input containing the stored masked message](../docs/images/langfuse-trace.png)
+
+The examples use synthetic data and do not call an LLM. Placeholder types come from ZeroClave's response; the email address in this capture was classified as `CODE`. The displayed timing describes that request only.
+
 ## Run
 
 Use a Langfuse Cloud or self-hosted project:
@@ -51,3 +63,9 @@ sudo systemctl status zeroclave-langfuse-demo
 ```
 
 The service listens on port 3017 with read-only application access and restarts on failure.
+
+## Refresh the screenshots
+
+Run a built-in synthetic example and wait for the page to confirm Langfuse persistence. Expand the stored observation and capture the demo as `docs/images/privacy-demo.png`. Follow the trace link, sign in to your project, and wait until the actual masked input has loaded before capturing `docs/images/langfuse-trace.png`.
+
+Capture the result and trace views; keep API keys, login forms, and real customer data out of the images. Both main READMEs use these repository-relative image paths so the screenshots render on GitHub.

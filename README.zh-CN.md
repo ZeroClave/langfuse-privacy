@@ -2,13 +2,38 @@
 
 [English](./README.md)
 
-在 Langfuse 导出 Trace 前对敏感文本做脱敏。由 [ZeroClave](https://zeroclave.com) 维护的开源适配包，无运行时依赖。
+`@zeroclave/langfuse-privacy` 在 Langfuse 导出 Trace 前对敏感文本做脱敏。由 [ZeroClave](https://zeroclave.com) 维护的 JavaScript/TypeScript 开源适配包，无运行时依赖。
 
 ```ts
 new LangfuseSpanProcessor({ mask: createZeroClaveMask() });
 ```
 
 当前版本：`0.1.0-alpha.1`，面向 JavaScript/TypeScript，要求 Node.js 22+，已使用 `@langfuse/otel` 6.1.1 做集成测试。当前为初始实现，npm 发布需单独执行。
+
+## 效果预览
+
+下图使用合成数据，展示真实 ZeroClave 检测、应用内替换、Langfuse API 入库回读及后台 Trace 显示的完整流程。
+
+![ZeroClave 检测后，演示页面展示从 Langfuse 回读的脱敏内容](./docs/images/privacy-demo.png)
+
+![Langfuse 后台显示同一条 Trace 的脱敏输入](./docs/images/langfuse-trace.png)
+
+ZeroClave SaaS 会收到用于检测的原文；Langfuse 存储经过此适配器处理的脱敏内容。截图中的命中结果只代表该组合成数据，不能保证检测完美或不会漏检。
+
+## 运行真实入库演示
+
+克隆本仓库后，在仓库目录执行：
+
+```sh
+npm ci --ignore-scripts
+cp demo/.env.example .env
+# 在 .env 中填写自己的 Langfuse 项目配置。
+npm run demo
+```
+
+浏览器打开 `http://localhost:3017`。演示支持自己的 Langfuse Cloud 或自建项目，需配置 `LANGFUSE_BASE_URL`、`LANGFUSE_UI_URL`、`LANGFUSE_PROJECT_ID`、`LANGFUSE_PUBLIC_KEY` 和 `LANGFUSE_SECRET_KEY`。密钥留在演示服务端，`.env` 已被 Git 忽略。
+
+每次提交都会调用真实 ZeroClave 检测服务，将脱敏后的 Trace 发往所配置的 Langfuse 项目；只有通过 Langfuse API 回读到对应记录，页面才显示入库成功，并提供后台 Trace 链接。演示不调用大模型。请先使用合成数据，具体配置和本地部署方式见 [demo/README.md](./demo/README.md)。
 
 ## 接入
 
@@ -53,7 +78,7 @@ sdk.start();
 1. Langfuse 在导出支持的字段前调用 `mask`。
 2. 适配器提取嵌套对象、数组、JSON 字符串及工具参数 JSON 中的字符串值。
 3. 将这些原文通过 HTTPS 发给 ZeroClave SaaS，获取敏感实体的位置和类型。
-4. 在业务应用进程内替换，例如 `alice@example.com` → `[REDACTED_EMAIL]`，再交给 Langfuse 导出。
+4. 在业务应用进程内替换，例如 `alice@example.com` → `[REDACTED_CODE]`（与截图中的占位符类型一致），再交给 Langfuse 导出。占位符沿用检测服务返回的实体类型，可能随模型变化；不保证所有邮箱都标为 `EMAIL`。
 
 对象与数组保持结构；JSON 字符串会重新序列化，空白格式与重复键可能变化。正确处理 emoji 对应的 Unicode codepoint 偏移，合并重叠实体；遇到新增的合法实体类型仍然脱敏。不会修改实际发给模型的请求，也不保存还原映射。
 
@@ -101,7 +126,7 @@ const mask = createZeroClaveMask({
 
 ## 开发与测试
 
-在 `.env` 配置 Langfuse 项目后，运行 `npm run demo`，打开 `http://localhost:3017`。演示会真实发送脱敏后的 Trace，查询 Langfuse 服务端确认入库，再展示已存储内容和对应 Trace 链接。部署方式见 [demo/README.md](./demo/README.md)。
+上方的[真实入库演示](#运行真实入库演示)用于验证 Langfuse 收集、存储和后台展示。以下命令用于开发检查：
 
 ```sh
 npm ci --ignore-scripts
@@ -111,13 +136,13 @@ npm pack --dry-run
 
 测试使用 mock ZeroClave 服务；SDK 测试使用内存 exporter，演示测试通过实际 HTTP exporter 发送至本地收集端 fixture，并要求查询回已存储的观察记录。自动测试不调用生产服务，也不验证实际模型准确率或线上可用性。CI 在 Node 22 和 24 上运行。
 
-### 本地连接真实 SaaS 测试
+### 仅测试真实 SaaS 与 SDK 导出
 
 ```sh
 npm run test:live
 ```
 
-这条命令单独执行，不在默认测试或 CI 中运行。脚本将内置的虚构姓名、手机号、`example.com` 邮箱通过 HTTPS 发给真实 ZeroClave，经过真实 Langfuse SDK 脱敏后导出到本地内存。无需 ZeroClave API key，也无需 Langfuse 账号或密钥；不会向 Langfuse Cloud 写入 Trace。
+`test:live` 单独执行，不在默认测试或 CI 中运行。它将内置的虚构姓名、手机号、`example.com` 邮箱通过 HTTPS 发给真实 ZeroClave，经过真实 Langfuse SDK 脱敏后导出到本地内存。无需 ZeroClave API key，也无需 Langfuse 账号或密钥；该测试不向任何 Langfuse 项目写入 Trace。
 
 通过条件包括：全部请求返回 HTTP 200 且检测完整；input、output、metadata 中的合成敏感值都已替换；导出结果不是失败时的整字段占位符；JSON 可以解析，emoji、普通数字与布尔值保持正确。任何一项失败，进程都以非零状态退出，不能把“请求成功”或“整字段被屏蔽”当作联调通过。
 
@@ -130,7 +155,7 @@ ZEROCLAVE_ENDPOINT=http://localhost:8080/v1/pii/detect npm run test:live
 ZEROCLAVE_TIMEOUT_MS=30000 npm run test:live
 ```
 
-这一步验证到 SDK 导出边界；若还要验证 Langfuse 页面、网络传输及持久化，需在自己的 Langfuse 项目中使用接入示例，并检查实际 Trace。脚本没有做这一层云端验证。
+`test:live` 的验证止于 SDK 导出边界。需要验证 Langfuse 网络收集、持久化及后台页面时，请运行上方的真实入库演示；该演示会向自己的项目写入 Trace，并通过 API 回读确认。
 
 包使用 ESM，没有 Langfuse 运行时依赖；Langfuse 与 OpenTelemetry 只用于开发阶段的真实 SDK 集成测试和示例类型检查。贡献说明见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
