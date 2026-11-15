@@ -31,7 +31,7 @@ cp demo/.env.example .env
 npm run demo
 ```
 
-浏览器打开 `http://localhost:3017`。演示支持自己的 Langfuse Cloud 或自建项目，需配置 `LANGFUSE_BASE_URL`、`LANGFUSE_UI_URL`、`LANGFUSE_PROJECT_ID`、`LANGFUSE_PUBLIC_KEY` 和 `LANGFUSE_SECRET_KEY`。密钥留在演示服务端，`.env` 已被 Git 忽略。
+浏览器打开 `http://localhost:3017`；英文界面使用 `http://localhost:3017/?lang=en`。示例按钮会同时切换界面语言和合成样例，并清空上次结果。演示支持自己的 Langfuse Cloud 或自建项目，需配置 `LANGFUSE_BASE_URL`、`LANGFUSE_UI_URL`、`LANGFUSE_PROJECT_ID`、`LANGFUSE_PUBLIC_KEY` 和 `LANGFUSE_SECRET_KEY`。密钥留在演示服务端，`.env` 已被 Git 忽略。
 
 每次提交都会调用真实 ZeroClave 检测服务，将脱敏后的 Trace 发往所配置的 Langfuse 项目；只有通过 Langfuse API 回读到对应记录，页面才显示入库成功，并提供后台 Trace 链接。演示不调用大模型。请先使用合成数据，具体配置和本地部署方式见 [demo/README.md](./demo/README.md)。
 

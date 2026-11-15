@@ -20,13 +20,13 @@ new LangfuseSpanProcessor({ mask: createZeroClaveMask() });
 
 The browser demo compares a synthetic customer message with the masked input read back from a real Langfuse project. It reports success only after Langfuse's public API returns the matching stored observation.
 
-![ZeroClave demo showing a synthetic customer message, masked text, and the observation confirmed in Langfuse](./docs/images/privacy-demo.png)
+![ZeroClave demo showing a synthetic customer message, masked text, and the observation confirmed in Langfuse](./docs/images/privacy-demo-en.png)
 
 The same trace is visible in the Langfuse UI, with the masked text in its input:
 
-![Langfuse trace showing the stored input with name, code, and date/time placeholders](./docs/images/langfuse-trace.png)
+![Langfuse trace showing the stored masked input](./docs/images/langfuse-trace-en.png)
 
-These screenshots show a real ZeroClave detection request and a self-hosted Langfuse 4.80.0 project using synthetic data. Placeholder types follow the detector response: in this example the email address is labeled `CODE`. Labels and timings can vary; this example is not an accuracy or performance benchmark. The demo records an input span without making an LLM call.
+These screenshots show the English interface, a real ZeroClave detection request, and a self-hosted Langfuse 4.80.0 project using synthetic data. Placeholder types follow the detector response. Labels and timings can vary; this example is not an accuracy or performance benchmark. The demo records an input span without making an LLM call.
 
 ## Run the demo
 
@@ -39,7 +39,7 @@ cp demo/.env.example .env
 npm run demo
 ```
 
-Open `http://localhost:3017`, run a synthetic example, and follow the trace link to inspect the stored result. Configure these values in `.env` for your Langfuse Cloud or self-hosted project:
+Open `http://localhost:3017/?lang=en` for the English interface, run a synthetic example, and follow the trace link to inspect the stored result. The example buttons switch the interface and sample between Chinese and English. Configure these values in `.env` for your Langfuse Cloud or self-hosted project:
 
 | Variable | Value |
 | --- | --- |
@@ -94,7 +94,7 @@ If you already initialize OpenTelemetry, add `mask` to your existing Langfuse pr
 1. Langfuse calls its `mask` hook before exporting supported fields.
 2. The adapter traverses strings in the value, including serialized JSON input/output and nested JSON tool arguments.
 3. It sends text to ZeroClave's detection endpoint, which returns entity ranges and types.
-4. The adapter replaces those ranges **inside your application process**, using the returned entity types, and returns the masked value to Langfuse. For example, the screenshots show an email address replaced by `[REDACTED_CODE]`.
+4. The adapter replaces those ranges **inside your application process**, using the returned entity types, and returns the masked value to Langfuse. For example, a detected entity of type `NAME` becomes `[REDACTED_NAME]`.
 
 Objects and arrays retain their structure. Serialized JSON is parsed and re-serialized, so whitespace and duplicate keys may change. Unicode codepoint offsets are converted to JavaScript UTF-16 offsets; overlapping entity ranges are merged. New valid entity types are still masked. The adapter neither changes the application's model request nor stores a restoration mapping.
 

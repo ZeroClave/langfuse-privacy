@@ -6,13 +6,13 @@ The demo sends text to ZeroClave for detection, masks it in the application, and
 
 The built-in synthetic customer message, its masked result, and the observation read back from Langfuse:
 
-![ZeroClave privacy demo after confirmed Langfuse ingestion](../docs/images/privacy-demo.png)
+![ZeroClave privacy demo after confirmed Langfuse ingestion](../docs/images/privacy-demo-en.png)
 
 The corresponding trace in a self-hosted Langfuse 4.80.0 project:
 
-![Langfuse trace input containing the stored masked message](../docs/images/langfuse-trace.png)
+![Langfuse trace input containing the stored masked message](../docs/images/langfuse-trace-en.png)
 
-The examples use synthetic data and do not call an LLM. Placeholder types come from ZeroClave's response; the email address in this capture was classified as `CODE`. The displayed timing describes that request only.
+The examples use synthetic data and do not call an LLM. Placeholder types come from ZeroClave's response. The displayed timing describes that request only. Chinese captures are retained in the [Chinese README](../README.zh-CN.md).
 
 ## Run
 
@@ -25,7 +25,7 @@ cp demo/.env.example .env
 npm run demo
 ```
 
-Open `http://localhost:3017`. The CLI loads `.env`, which is ignored by Git. API keys stay on the server; they are never sent to the browser or ZeroClave. The default listener is loopback. Set `HOST=0.0.0.0` for an OrbStack VM, or `PORT` for another port. `ZEROCLAVE_ENDPOINT` and `ZEROCLAVE_TIMEOUT_MS` override the detector URL and 15-second budget.
+Open `http://localhost:3017/?lang=en` for English, or `http://localhost:3017/` for Chinese. The example buttons switch both the interface language and synthetic sample; switching clears the previous result. The CLI loads `.env`, which is ignored by Git. API keys stay on the server; they are never sent to the browser or ZeroClave. The default listener is loopback. Set `HOST=0.0.0.0` for an OrbStack VM, or `PORT` for another port. `ZEROCLAVE_ENDPOINT` and `ZEROCLAVE_TIMEOUT_MS` override the detector URL and 15-second budget.
 
 `LANGFUSE_BASE_URL` is the backend's Langfuse address. `LANGFUSE_UI_URL` is the browser address for trace links. `LANGFUSE_PROJECT_ID` comes from the project URL. All three and `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` are required; there is no automatic memory-only fallback.
 
@@ -66,6 +66,6 @@ The service listens on port 3017 with read-only application access and restarts 
 
 ## Refresh the screenshots
 
-Run a built-in synthetic example and wait for the page to confirm Langfuse persistence. Expand the stored observation and capture the demo as `docs/images/privacy-demo.png`. Follow the trace link, sign in to your project, and wait until the actual masked input has loaded before capturing `docs/images/langfuse-trace.png`.
+Open `/?lang=en`, run the built-in English synthetic example, and wait for the page to confirm Langfuse persistence. Capture the demo as `docs/images/privacy-demo-en.png`. Follow the trace link, sign in to your project, and wait until the actual masked input has loaded before capturing `docs/images/langfuse-trace-en.png`. Use the Chinese interface and sample for `privacy-demo.png` and `langfuse-trace.png`.
 
 Capture the result and trace views; keep API keys, login forms, and real customer data out of the images. Both main READMEs use these repository-relative image paths so the screenshots render on GitHub.

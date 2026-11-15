@@ -33,9 +33,10 @@
     .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .panel { display: flex; flex-direction: column; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 3px 11px #3b303803; overflow: hidden; }
     .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 21px 16px; min-height: 75px; gap: 10px; }
+    .panel-head > div:first-child { min-width: 0; }
     .panel-title { font-size: 14px; font-weight: 600; margin: 0 0 5px; }
     .panel-caption { font-size: 11px; color: #918a97; }
-    .presets { display: flex; gap: 4px; padding: 3px; background: #f5f4f2; border-radius: 7px; }
+    .presets { display: flex; flex: none; gap: 4px; padding: 3px; background: #f5f4f2; border-radius: 7px; }
     .preset { border: 0; background: transparent; border-radius: 5px; padding: 6px 9px; color: #77717d; font-size: 11px; }
     .preset:hover { background: #eae7e2; color: var(--ink); }
     .preset[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px #2a223311; }
@@ -47,7 +48,7 @@
     .result.empty { color: #aaa3af; font-size: 13px; }
     .panel-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding: 13px 21px; border-top: 1px solid #f0ede9; min-height: 57px; color: #9d96a2; font-size: 11px; }
     .count { font-variant-numeric: tabular-nums; }
-    .run { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #6048b3; border-radius: 7px; padding: 9px 16px; background: var(--purple); color: #fff; font-weight: 500; font-size: 12px; box-shadow: 0 2px 3px #3823620e; min-width: 111px; }
+    .run { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 8px; border: 1px solid #6048b3; border-radius: 7px; padding: 9px 16px; background: var(--purple); color: #fff; font-weight: 500; font-size: 12px; box-shadow: 0 2px 3px #3823620e; min-width: 111px; }
     .run:hover:not(:disabled) { background: #5b43ad; }
     .run:disabled { opacity: .72; }
     .run svg { width: 13px; height: 13px; }
@@ -55,7 +56,7 @@
     .spinner { width: 12px; height: 12px; border: 1.5px solid #ffffff65; border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
     .spinner[hidden] { display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .status { display: inline-flex; align-items: center; gap: 6px; color: #97909e; font-size: 11px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; max-width: 50%; color: #97909e; font-size: 11px; line-height: 1.5; }
     .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #c5bec9; flex: none; }
     .status[data-state="loading"] { color: var(--purple); }
     .status[data-state="loading"]::before { background: #9f87dc; animation: pulse 1.2s ease-in-out infinite; }
@@ -66,7 +67,7 @@
     .status[data-state="error"] { color: var(--red); }
     .status[data-state="error"]::before { background: #bb7373; }
     @keyframes pulse { 50% { opacity: .35; } }
-    .result-footnote { color: #8c9590; }
+    .result-footnote { min-width: 0; color: #8c9590; line-height: 1.6; overflow-wrap: anywhere; }
     .trace-link { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 6px; padding: 8px 10px; border: 1px solid #c9dfd2; border-radius: 7px; background: var(--green-soft); color: var(--green); font-size: 11px; font-weight: 550; text-decoration: none; white-space: nowrap; }
     .trace-link:hover { background: #e3f0e8; border-color: #a9cdb9; }
     .trace-link[hidden] { display: none; }
@@ -79,17 +80,17 @@
     .error { padding: 11px 14px; margin: 0 0 18px; color: var(--red); background: #f9efec; border: 1px solid #efdcd6; border-radius: 8px; font-size: 12px; line-height: 1.6; }
     .error[hidden] { display: none; }
     details { border: 1px solid var(--line); border-radius: 10px; background: #fbfaf8; overflow: hidden; }
-    summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; padding: 16px 19px; color: #746c7c; font-size: 12px; }
+    summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; padding: 16px 19px; color: #746c7c; font-size: 12px; line-height: 1.6; }
     summary::-webkit-details-marker { display: none; }
     summary::before { content: "›"; font-size: 18px; color: #a39ba9; line-height: 12px; transform-origin: 50% 50%; }
     details[open] summary::before { transform: rotate(90deg); }
-    .export-hint { margin-left: auto; color: #a29aa8; font-size: 10px; }
+    .export-hint { margin-left: auto; color: #a29aa8; font-size: 10px; text-align: right; }
     .export-data { margin: 0; padding: 17px 20px 22px; border-top: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; color: #696170; font: 11px/1.85 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; max-height: 370px; overflow-y: auto; }
     footer { padding: 25px 0 35px; display: flex; justify-content: space-between; gap: 20px; color: #a49ca9; font-size: 10px; line-height: 1.7; }
     footer span:last-child { white-space: nowrap; }
     @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; } }
     @media (max-width: 850px) { .flow { display: none; } .app { width: calc(100% - 40px); } }
-    @media (max-width: 640px) { .app { width: calc(100% - 28px); } header { padding: 22px 0; } .brand { font-size: 15px; gap: 9px; } .header-tag { font-size: 10px; } main { padding-top: 26px; } h1 { font-size: 22px; } .workspace { grid-template-columns: 1fr; gap: 15px; } textarea, .result { min-height: 205px; font-size: 13px; } .metrics { grid-template-columns: 1fr 1fr; gap: 18px 0; } .metric:nth-child(3) { border-left: 0; } .metric { padding: 0 18px; } .export-hint { display: none; } footer { display: block; padding-bottom: 25px; } footer span { display: block; } footer span:last-child { margin-top: 5px; } }
+    @media (max-width: 640px) { .app { width: calc(100% - 28px); } header { padding: 22px 0; flex-wrap: wrap; } .brand { font-size: 15px; gap: 9px; } .header-tag { font-size: 10px; } main { padding-top: 26px; } h1 { font-size: 22px; } .workspace { grid-template-columns: 1fr; gap: 15px; } .panel-head { flex-wrap: wrap; } textarea, .result { min-height: 205px; font-size: 13px; } .panel-foot { flex-wrap: wrap; } .count { margin-right: auto; } .metrics { grid-template-columns: 1fr 1fr; gap: 18px 0; } .metric:nth-child(3) { border-left: 0; } .metric { padding: 0 18px; } summary { flex-wrap: wrap; } .export-hint { width: 100%; margin-left: 18px; text-align: left; } footer { display: block; padding-bottom: 25px; } footer span { display: block; } footer span:last-child { margin-top: 5px; } }
   </style>
 </head>
 <body>
@@ -99,36 +100,130 @@
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5.1c0 4.3 3.1 7.9 7.5 9.9 4.4-2 7.5-5.6 7.5-9.9V6L12 3Z" stroke="currentColor" stroke-width="1.5"/><path d="m8.5 11.8 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span>ZeroClave <span class="cross">×</span> <span class="partner">Langfuse</span></span>
       </div>
-      <span class="header-tag">隐私脱敏 · 在线演示</span>
+      <span class="header-tag" data-i18n="headerTag">隐私脱敏 · 在线演示</span>
     </header>
     <main>
       <section class="intro" aria-labelledby="page-title">
-        <div><h1 id="page-title">看看日志脱敏后的样子</h1><p class="description">输入一段文本，查看脱敏结果与 Langfuse 实际入库记录。</p></div>
-        <div class="flow" aria-hidden="true"><span>原始文本</span><span class="arrow">→</span><span>检测脱敏</span><span class="arrow">→</span><span>Langfuse 入库</span></div>
+        <div><h1 id="page-title" data-i18n="pageTitle">看看日志脱敏后的样子</h1><p class="description" data-i18n="description">输入一段文本，查看脱敏结果与 Langfuse 实际入库记录。</p></div>
+        <div class="flow" aria-hidden="true"><span data-i18n="sourceLabel">原始文本</span><span class="arrow">→</span><span data-i18n="flowRedact">检测脱敏</span><span class="arrow">→</span><span data-i18n="flowStored">Langfuse 入库</span></div>
       </section>
-      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 1 1 7 0V8M10 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>文本会发送至 ZeroClave 检测；脱敏后的 Trace 会写入当前 Langfuse 项目。建议先使用合成示例。</span></div>
+      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 1 1 7 0V8M10 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span data-i18n="privacyNote">文本会发送至 ZeroClave 检测；脱敏后的 Trace 会写入当前 Langfuse 项目。建议先使用合成示例。</span></div>
       <form id="demo-form">
         <div class="workspace">
           <section class="panel" aria-labelledby="input-title">
-            <div class="panel-head"><div><h2 class="panel-title" id="input-title"><label for="source">原始文本</label></h2><span class="panel-caption">输入内容或选择合成示例</span></div><div class="presets" aria-label="示例预设"><button class="preset" type="button" data-example="zh" aria-pressed="true">中文示例</button><button class="preset" type="button" data-example="en" aria-pressed="false">English</button></div></div>
-            <textarea id="source" name="text" maxlength="10000" spellcheck="false" aria-describedby="input-count" placeholder="在这里输入需要脱敏的文本…" required></textarea>
+            <div class="panel-head"><div><h2 class="panel-title" id="input-title"><label for="source" data-i18n="sourceLabel">原始文本</label></h2><span class="panel-caption" data-i18n="inputCaption">输入内容或选择合成示例</span></div><div class="presets" aria-label="示例预设" data-i18n-aria-label="presetsLabel"><button class="preset" type="button" data-example="zh" aria-pressed="true" data-i18n="chineseExample">中文示例</button><button class="preset" type="button" data-example="en" aria-pressed="false">English</button></div></div>
+            <textarea id="source" name="text" maxlength="10000" spellcheck="false" aria-describedby="input-count" placeholder="在这里输入需要脱敏的文本…" data-i18n-placeholder="sourcePlaceholder" required></textarea>
             <div class="panel-foot"><span class="count" id="input-count">0 / 10,000 字符</span><button class="run" id="run" type="submit"><svg id="run-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="spinner" id="spinner" hidden aria-hidden="true"></span><span id="run-label">运行脱敏</span></button></div>
           </section>
           <section class="panel" id="result-panel" aria-labelledby="result-title" aria-busy="false">
-            <div class="panel-head"><div><h2 class="panel-title" id="result-title">脱敏结果</h2><span class="panel-caption">脱敏后写入 Langfuse</span></div><span class="status" id="status" data-state="idle" role="status" aria-live="polite">等待运行</span></div>
+            <div class="panel-head"><div><h2 class="panel-title" id="result-title" data-i18n="resultTitle">脱敏结果</h2><span class="panel-caption" data-i18n="resultCaption">脱敏后写入 Langfuse</span></div><span class="status" id="status" data-state="idle" role="status" aria-live="polite">等待运行</span></div>
             <pre class="result empty" id="result" aria-live="polite">运行后，脱敏结果会显示在这里。</pre>
-            <div class="panel-foot"><span class="result-footnote" id="result-note">识别到的敏感信息将替换为占位符</span><a class="trace-link" id="trace-link" target="_blank" rel="noopener noreferrer" hidden>在 Langfuse 查看 Trace ↗</a></div>
+            <div class="panel-foot"><span class="result-footnote" id="result-note">识别到的敏感信息将替换为占位符</span><a class="trace-link" id="trace-link" target="_blank" rel="noopener noreferrer" data-i18n="viewTrace" hidden>在 Langfuse 查看 Trace ↗</a></div>
           </section>
         </div>
       </form>
-      <div class="metrics" aria-label="本次运行统计"><div class="metric"><span class="metric-label">处理耗时</span><span class="metric-value" id="duration">—</span></div><div class="metric"><span class="metric-label">识别实体</span><span class="metric-value" id="entities">—</span></div><div class="metric"><span class="metric-label">检测请求</span><span class="metric-value" id="requests">—</span></div><div class="metric model"><span class="metric-label">检测模型</span><span class="metric-value" id="model">—</span></div></div>
+      <div class="metrics" aria-label="本次运行统计" data-i18n-aria-label="metricsLabel"><div class="metric"><span class="metric-label" data-i18n="durationLabel">处理耗时</span><span class="metric-value" id="duration">—</span></div><div class="metric"><span class="metric-label" data-i18n="entitiesLabel">识别实体</span><span class="metric-value" id="entities">—</span></div><div class="metric"><span class="metric-label" data-i18n="requestsLabel">检测请求</span><span class="metric-value" id="requests">—</span></div><div class="metric model"><span class="metric-label" data-i18n="modelLabel">检测模型</span><span class="metric-value" id="model">—</span></div></div>
       <p class="error" id="error" role="alert" hidden></p>
-      <details><summary>Langfuse 已入库记录<span class="export-hint">由真实服务 API 回查确认</span></summary><pre class="export-data" id="export">运行并确认入库后，可在这里查看 Langfuse 已入库记录。</pre></details>
+      <details><summary><span data-i18n="storedRecords">Langfuse 已入库记录</span><span class="export-hint" data-i18n="storedHint">由真实服务 API 回查确认</span></summary><pre class="export-data" id="export">运行并确认入库后，可在这里查看 Langfuse 已入库记录。</pre></details>
     </main>
-    <footer><span>自动检测可能存在漏检，请结合实际业务评估脱敏效果。</span><span>@zeroclave/langfuse-privacy</span></footer>
+    <footer><span data-i18n="footerNote">自动检测可能存在漏检，请结合实际业务评估脱敏效果。</span><span>@zeroclave/langfuse-privacy</span></footer>
   </div>
   <script>
     'use strict';
+    const messages = {
+      zh: {
+        headerTag: '隐私脱敏 · 在线演示',
+        pageTitle: '看看日志脱敏后的样子',
+        description: '输入一段文本，查看脱敏结果与 Langfuse 实际入库记录。',
+        sourceLabel: '原始文本',
+        flowRedact: '检测脱敏',
+        flowStored: 'Langfuse 入库',
+        privacyNote: '文本会发送至 ZeroClave 检测；脱敏后的 Trace 会写入当前 Langfuse 项目。建议先使用合成示例。',
+        inputCaption: '输入内容或选择合成示例',
+        presetsLabel: '界面语言与合成示例',
+        chineseExample: '中文示例',
+        sourcePlaceholder: '在这里输入需要脱敏的文本…',
+        inputRequired: '请输入需要脱敏的文本。',
+        characters: '字符',
+        run: '运行脱敏',
+        processing: '正在处理',
+        resultTitle: '脱敏结果',
+        resultCaption: '脱敏后写入 Langfuse',
+        idle: '等待运行',
+        emptyResult: '运行后，脱敏结果会显示在这里。',
+        emptyExport: '运行并确认入库后，可在这里查看 Langfuse 已入库记录。',
+        resultNote: '识别到的敏感信息将替换为占位符',
+        viewTrace: '在 Langfuse 查看 Trace ↗',
+        metricsLabel: '本次运行统计',
+        durationLabel: '处理耗时',
+        entitiesLabel: '识别实体',
+        requestsLabel: '检测请求',
+        modelLabel: '检测模型',
+        entityUnit: '个',
+        requestUnit: '次',
+        storedRecords: 'Langfuse 已入库记录',
+        storedHint: '由真实服务 API 回查确认',
+        footerNote: '自动检测可能存在漏检，请结合实际业务评估脱敏效果。',
+        sourceChanged: '原文已修改，重新运行即可查看结果。',
+        loadingResult: '正在检测敏感信息 → 发送脱敏 Trace → 确认 Langfuse 入库，最多等待 45 秒…',
+        loadingStatus: '检测 · 发送 · 确认入库',
+        failure: '本次运行未能完成确认，请重试或检查 Langfuse。',
+        rateLimited: '请求较多，请稍后重试。',
+        textTooLong: '文本较长，请缩短后重试。',
+        maskedStatus: '已脱敏 · 已入库',
+        maskedNote: '敏感信息已替换，Langfuse 已确认入库',
+        noFindingsStatus: '未发现实体 · 已入库',
+        noFindingsNote: '未发现实体，原文已入库；这不代表一定无敏感信息',
+        errorStatus: '尚未完成确认',
+        timeout: '等待确认已超时，请检查 Langfuse 中是否已有本次 Trace。',
+      },
+      en: {
+        headerTag: 'Privacy redaction · Live demo',
+        pageTitle: 'See your logs after redaction',
+        description: 'Enter text to view redacted output and the record stored in Langfuse.',
+        sourceLabel: 'Original text',
+        flowRedact: 'Detect & redact',
+        flowStored: 'Store in Langfuse',
+        privacyNote: 'Text is sent to ZeroClave for detection. The redacted trace is written to the current Langfuse project. Start with a synthetic example.',
+        inputCaption: 'Enter text or select a synthetic example',
+        presetsLabel: 'Interface language and synthetic example',
+        chineseExample: 'Chinese',
+        sourcePlaceholder: 'Enter text to redact here…',
+        inputRequired: 'Enter some text to redact.',
+        characters: 'characters',
+        run: 'Run masking',
+        processing: 'Processing',
+        resultTitle: 'Redacted output',
+        resultCaption: 'Written to Langfuse after redaction',
+        idle: 'Ready to run',
+        emptyResult: 'Your redacted text will appear here after you run the demo.',
+        emptyExport: 'Run the demo to view the stored Langfuse record after storage is confirmed.',
+        resultNote: 'Detected sensitive information is replaced with placeholders',
+        viewTrace: 'View trace in Langfuse ↗',
+        metricsLabel: 'Run statistics',
+        durationLabel: 'Processing time',
+        entitiesLabel: 'Detected entities',
+        requestsLabel: 'Detection requests',
+        modelLabel: 'Detection model',
+        entityUnit: 'entities',
+        requestUnit: 'requests',
+        storedRecords: 'Stored Langfuse record',
+        storedHint: 'Confirmed via the live service API',
+        footerNote: 'Automated detection may miss sensitive information. Evaluate redaction for your use case.',
+        sourceChanged: 'The original text has changed. Run again to view the result.',
+        loadingResult: 'Detecting sensitive information → sending the redacted trace → confirming storage in Langfuse. This may take up to 45 seconds…',
+        loadingStatus: 'Detecting · Sending · Confirming',
+        failure: 'Storage could not be confirmed. Try again or check Langfuse.',
+        rateLimited: 'Too many requests. Please try again shortly.',
+        textTooLong: 'The text is too long. Shorten it and try again.',
+        maskedStatus: 'Redacted · Stored',
+        maskedNote: 'Sensitive information replaced. Storage confirmed in Langfuse.',
+        noFindingsStatus: 'No entities found · Stored',
+        noFindingsNote: 'No entities were found, so the original text was stored. Sensitive information may still be present.',
+        errorStatus: 'Storage unconfirmed',
+        timeout: 'Confirmation timed out. Check Langfuse to see whether this trace was stored.',
+      },
+    };
     const examples = {
       zh: '请联系客户王小明，邮箱 xiaoming.wang@example.com。\n客户希望了解订单 DEMO-2026-001 的配送进度，请在明天下午回复。',
       en: 'Please contact Alice Johnson at alice.johnson@example.com or +1 202-555-0143.\nThe customer would like an update on order DEMO-2026-001. Please reply tomorrow afternoon.',
@@ -137,6 +232,31 @@
     const presets = [...document.querySelectorAll('[data-example]')];
     let running = false;
     let hasResult = false;
+    let language = 'zh';
+
+    function t(key) {
+      return messages[language][key];
+    }
+    function applyLanguage(key) {
+      language = key;
+      document.documentElement.lang = key === 'en' ? 'en' : 'zh-CN';
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        element.textContent = t(element.dataset.i18n);
+      });
+      for (const attribute of ['aria-label', 'placeholder']) {
+        document.querySelectorAll('[data-i18n-' + attribute + ']').forEach(element => {
+          element.setAttribute(attribute, t(element.getAttribute('data-i18n-' + attribute)));
+        });
+      }
+      elements['run-label'].textContent = t('run');
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', key);
+      window.history.replaceState(window.history.state, '', url);
+    }
+    function formatCount(value, unit) {
+      const label = language === 'en' && value === 1 ? (unit === 'entityUnit' ? 'entity' : 'request') : t(unit);
+      return value.toLocaleString(language === 'en' ? 'en-US' : 'zh-CN') + ' ' + label;
+    }
 
     function setStatus(text, state) {
       elements.status.textContent = text;
@@ -146,20 +266,20 @@
       for (const id of ['duration', 'entities', 'requests', 'model']) elements[id].textContent = '—';
       elements.model.removeAttribute('title');
     }
-    function clearResult(message = '运行后，脱敏结果会显示在这里。') {
+    function clearResult(message = t('emptyResult')) {
       hasResult = false;
       elements.result.textContent = message;
       elements.result.classList.add('empty');
-      elements.export.textContent = '运行并确认入库后，可在这里查看 Langfuse 已入库记录。';
+      elements.export.textContent = t('emptyExport');
       elements['trace-link'].hidden = true;
       elements['trace-link'].removeAttribute('href');
-      elements['result-note'].textContent = '识别到的敏感信息将替换为占位符';
+      elements['result-note'].textContent = t('resultNote');
       elements.error.hidden = true;
       elements.error.textContent = '';
       clearMetrics();
     }
     function updateCount() {
-      elements['input-count'].textContent = elements.source.value.length.toLocaleString('zh-CN') + ' / 10,000 字符';
+      elements['input-count'].textContent = elements.source.value.length.toLocaleString(language === 'en' ? 'en-US' : 'zh-CN') + ' / 10,000 ' + t('characters');
     }
     function setLoading(value) {
       running = value;
@@ -168,16 +288,18 @@
       presets.forEach(button => { button.disabled = value; });
       elements.spinner.hidden = !value;
       elements['run-icon'].toggleAttribute('hidden', value);
-      elements['run-label'].textContent = value ? '正在处理' : '运行脱敏';
+      elements['run-label'].textContent = t(value ? 'processing' : 'run');
       elements['result-panel'].setAttribute('aria-busy', String(value));
     }
     function selectExample(key) {
       if (running || !Object.hasOwn(examples, key)) return;
+      applyLanguage(key);
       elements.source.value = examples[key];
+      elements.source.setCustomValidity('');
       presets.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.example === key)));
       clearResult();
       updateCount();
-      setStatus('等待运行', 'idle');
+      setStatus(t('idle'), 'idle');
     }
     function safeTraceUrl(value) {
       if (typeof value !== 'string' || value.length > 4096) return null;
@@ -206,11 +328,12 @@
     }
 
     presets.forEach(button => button.addEventListener('click', () => selectExample(button.dataset.example)));
+    elements.source.addEventListener('invalid', () => elements.source.setCustomValidity(t('inputRequired')));
     elements.source.addEventListener('input', () => {
+      elements.source.setCustomValidity('');
       updateCount();
-      presets.forEach(button => button.setAttribute('aria-pressed', 'false'));
-      if (hasResult || elements.status.dataset.state === 'error') clearResult('原文已修改，重新运行即可查看结果。');
-      setStatus('等待运行', 'idle');
+      if (hasResult || elements.status.dataset.state === 'error') clearResult(t('sourceChanged'));
+      setStatus(t('idle'), 'idle');
     });
 
     elements['demo-form'].addEventListener('submit', async event => {
@@ -218,15 +341,17 @@
       if (running) return;
       const text = elements.source.value;
       if (!text.trim()) {
+        elements.source.setCustomValidity(t('inputRequired'));
+        elements.source.reportValidity();
         elements.source.focus();
         return;
       }
-      clearResult('正在检测敏感信息 → 发送脱敏 Trace → 确认 Langfuse 入库，最多等待 45 秒…');
+      clearResult(t('loadingResult'));
       setLoading(true);
-      setStatus('检测 · 发送 · 确认入库', 'loading');
+      setStatus(t('loadingStatus'), 'loading');
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 45000);
-      let failureMessage = '本次运行未能完成确认，请重试或检查 Langfuse。';
+      let failureMessage = t('failure');
       try {
         const response = await fetch('/api/demo', {
           method: 'POST',
@@ -238,8 +363,8 @@
           redirect: 'error',
         });
         if (!response.ok) {
-          if (response.status === 429) failureMessage = '请求较多，请稍后重试。';
-          if (response.status === 413) failureMessage = '文本较长，请缩短后重试。';
+          if (response.status === 429) failureMessage = t('rateLimited');
+          if (response.status === 413) failureMessage = t('textTooLong');
           // Error responses are not rendered: they must never echo submitted text.
           throw new Error('request_failed');
         }
@@ -252,29 +377,29 @@
         elements['trace-link'].href = safeTraceUrl(value.langfuse.traceUrl);
         elements['trace-link'].hidden = false;
         elements.duration.textContent = stats.durationMs < 1000 ? Math.round(stats.durationMs) + ' ms' : (stats.durationMs / 1000).toFixed(2) + ' s';
-        elements.entities.textContent = stats.entities.toLocaleString('zh-CN') + ' 个';
-        elements.requests.textContent = stats.requests.toLocaleString('zh-CN') + ' 次';
+        elements.entities.textContent = formatCount(stats.entities, 'entityUnit');
+        elements.requests.textContent = formatCount(stats.requests, 'requestUnit');
         elements.model.textContent = stats.modelVersion || '—';
         elements.model.title = stats.modelVersion;
         hasResult = true;
         if (stats.status === 'masked') {
-          setStatus('已脱敏 · 已入库', 'success');
-          elements['result-note'].textContent = '敏感信息已替换，Langfuse 已确认入库';
+          setStatus(t('maskedStatus'), 'success');
+          elements['result-note'].textContent = t('maskedNote');
         } else {
-          setStatus('未发现实体 · 已入库', 'neutral');
-          elements['result-note'].textContent = '未发现实体，原文已入库；这不代表一定无敏感信息';
+          setStatus(t('noFindingsStatus'), 'neutral');
+          elements['result-note'].textContent = t('noFindingsNote');
         }
       } catch {
-        clearResult('本次运行未能完成确认，请重试或检查 Langfuse。');
-        setStatus('尚未完成确认', 'error');
-        elements.error.textContent = controller.signal.aborted ? '等待确认已超时，请检查 Langfuse 中是否已有本次 Trace。' : failureMessage;
+        clearResult(t('failure'));
+        setStatus(t('errorStatus'), 'error');
+        elements.error.textContent = controller.signal.aborted ? t('timeout') : failureMessage;
         elements.error.hidden = false;
       } finally {
         clearTimeout(timer);
         setLoading(false);
       }
     });
-    selectExample('zh');
+    selectExample(new URLSearchParams(window.location.search).get('lang') === 'en' ? 'en' : 'zh');
   </script>
 </body>
 </html>
