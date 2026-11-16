@@ -35,6 +35,20 @@ npm run demo
 
 每次提交都会调用真实 ZeroClave 检测服务，将脱敏后的 Trace 发往所配置的 Langfuse 项目；只有通过 Langfuse API 回读到对应记录，页面才显示入库成功，并提供后台 Trace 链接。演示不调用大模型。请先使用合成数据，具体配置和本地部署方式见 [demo/README.md](./demo/README.md)。
 
+## 腾讯云 CLS／AgentObs
+
+[CLS 接入指南](./docs/tencent-cls.md)演示如何在同一个 Langfuse processor 中组合 ZeroClave `mask` 与自定义 OTLP exporter，将支持的 Agent Trace 字段脱敏后发往腾讯云 CLS／AgentObs。可运行示例见 [examples/tencent-cls/](./examples/tencent-cls/)，使用合成文本，需要在 `.env.cls` 中配置自己的 CLS 测试主题与凭证。
+
+执行 `npm run demo:cls` 或 `npm run test:cls:live`，会写入合成 Trace 并通过 CLS SearchLog 读回验证。缺少配置、检测不完整或无法确认本次读回都会使命令失败。这两个真实服务命令与本地自动测试、CI 分开，不需要 Langfuse Server，也不调用大模型。ZeroClave 仍会接收检测原文；该接入不代表全部业务日志或全部 OpenTelemetry 字段已经脱敏。
+
+`npm run test:cls` 单独运行本地 CLS 协议测试。没有腾讯云凭证时，可执行 `npm run test:cls:transport:live`，验证真实 ZeroClave 检测与 protobuf HTTP 导出到本机接收器；报告 `.local/cls-transport-live-report.json` 明确标记 `cloudPersisted: false`。真实 CLS 写入和读回仍待配置云端项目后验收，云端命令将结果写到 `.local/cls-live-test-report.json`，只有核验本次存储记录后才报告云端成功。配置项、并发上限与三层测试范围见接入指南。
+
+## 阿里云 SLS／普通 LogStore
+
+[SLS 接入指南](./docs/alibaba-sls.md)和[可运行示例](./examples/alibaba-sls/)在应用内处理 JSON 业务日志中的字符串，再用官方 SLS SDK 写入普通 LogStore。无需 Langfuse Server，接入路径不使用 OTLP Trace 或 SessionStore。请克隆仓库，并在 `.env.sls` 配置自己的测试项目；示例不是 npm 包的 `/sls` 导出。
+
+`npm run demo:sls` 和 `npm run test:sls:live` 只有按本次唯一 `runId` 读回并核验存储日志后，才报告云端成功。`npm run test:sls` 运行本地协议测试；`npm run test:sls:transport:live` 使用真实 ZeroClave 检测与本地 SLS 接收器，明确记录 `cloudPersisted: false`。真实 SLS 写入和读回仍待配置云端项目后验证。示例使用合成数据；托管检测服务会收到原文，覆盖范围限于显式交给 mask 的日志字段。配置、失败行为与证据边界见接入指南。
+
 ## 接入
 
 首个 npm 版本发布前，先在仓库内构建安装包：

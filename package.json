@@ -28,7 +28,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.examples.json",
     "test": "npm run build && node --test test/*.test.mjs",
     "test:live": "npm run build && node scripts/test-live.mjs",
+    "test:cls": "npm run build && node --test test/tencent-cls.test.mjs test/cls-readback.test.mjs test/cls-example.test.mjs",
+    "test:cls:live": "npm run build && node examples/tencent-cls/run.mjs",
+    "test:cls:transport:live": "npm run build && node scripts/test-cls-transport-live.mjs",
+    "test:sls": "npm run build && node --test test/alibaba-sls.test.mjs test/sls-readback.test.mjs test/sls-example.test.mjs",
+    "test:sls:live": "npm run build && node examples/alibaba-sls/run.mjs",
+    "test:sls:transport:live": "npm run build && node scripts/test-sls-transport-live.mjs",
     "demo": "npm run build && node demo/server.mjs",
+    "demo:cls": "npm run build && node examples/tencent-cls/run.mjs",
+    "demo:sls": "npm run build && node examples/alibaba-sls/run.mjs",
     "check": "npm run typecheck && npm test",
     "prepack": "npm run build"
   },
@@ -52,10 +60,23 @@
   "publishConfig": {
     "access": "public"
   },
+  "overrides": {
+    "@alicloud/log": {
+      "protobufjs": "$protobufjs"
+    },
+    "tencentcloud-sdk-nodejs-common": {
+      "uuid": "11.1.1"
+    }
+  },
   "devDependencies": {
+    "@alicloud/log": "1.2.6",
     "@langfuse/otel": "6.1.1",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.223.2",
+    "@opentelemetry/resources": "2.12.1",
     "@opentelemetry/sdk-node": "0.223.2",
     "@opentelemetry/sdk-trace-base": "^2.0.0",
+    "protobufjs": "8.6.6",
+    "tencentcloud-sdk-nodejs-cls": "4.1.344",
     "typescript": "~5.9.3"
   }
 }

@@ -51,6 +51,20 @@ Open `http://localhost:3017/?lang=en` for the English interface, run a synthetic
 
 API keys stay on the demo server. The demo sends original text to ZeroClave for detection and stores masked traces in your Langfuse project. See [demo/README.md](./demo/README.md) for local Langfuse setup and Linux deployment.
 
+## Tencent Cloud CLS / AgentObs
+
+The [CLS integration guide (Chinese)](./docs/tencent-cls.md) uses the same mask hook with a custom OTLP exporter to send supported, masked Agent Trace fields to Tencent Cloud CLS / AgentObs. The runnable example in [examples/tencent-cls/](./examples/tencent-cls/) uses synthetic data and requires your own CLS configuration in `.env.cls`.
+
+Run `npm run demo:cls` or `npm run test:cls:live` to export the synthetic trace and verify it through CLS SearchLog. Missing configuration, incomplete detection or an unconfirmed read-back fails the command. These are manual live-service commands, separate from the local tests and CI; they do not require a Langfuse server or make an LLM call. ZeroClave still receives original text for detection, and the integration does not cover all application logs or every OpenTelemetry field.
+
+`npm run test:cls` runs local CLS contract tests. Without Tencent credentials, `npm run test:cls:transport:live` tests real ZeroClave detection and protobuf HTTP export to a local receiver; its report at `.local/cls-transport-live-report.json` explicitly has `cloudPersisted: false`. Real CLS write/read-back remains pending your cloud configuration; the cloud command writes `.local/cls-live-test-report.json` and reports cloud success only after verifying the matching stored record. See the guide for configuration, concurrency limits and test scopes.
+
+## Alibaba Cloud SLS / ordinary LogStore
+
+The [SLS integration guide (Chinese)](./docs/alibaba-sls.md) and [runnable example](./examples/alibaba-sls/) mask strings in a JSON business log inside your application, then use the official SLS SDK to write the result to an ordinary LogStore. This path uses neither a Langfuse server nor an OTLP Trace or SessionStore. Clone the repository and configure your own test project in `.env.sls`; the example is not an npm `/sls` export.
+
+`npm run demo:sls` and `npm run test:sls:live` require a matching stored log to be read back by its unique `runId` before reporting cloud success. `npm run test:sls` runs local contract tests; `npm run test:sls:transport:live` uses real ZeroClave detection and a local SLS receiver, with `cloudPersisted: false`. Real SLS write/read-back remains pending cloud configuration. These examples use synthetic data; the hosted detector receives original text, and only the explicitly submitted log fields are covered. See the guide for setup, failure behavior and verification limits.
+
 ## Quick start
 
 Until the first npm release, build and pack a local checkout:
